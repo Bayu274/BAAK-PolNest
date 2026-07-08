@@ -1,0 +1,45 @@
+Struktur Database - Portal Informasi BAAK Politeknik Nest
+========================================================
+
+1. Tabel: admin_users
+(Menyimpan data autentikasi satu akun admin bersama)
+- id         : INT (Primary Key, Auto Increment)
+- username   : VARCHAR(50) (Unique, Not Null)
+- password   : VARCHAR(255) (Not Null) -> Wajib di-hash bcrypt
+- created_at : TIMESTAMP (Default: CURRENT_TIMESTAMP)
+
+2. Tabel: news
+(Menyimpan artikel berita dan pengumuman publik)
+- id              : INT (Primary Key, Auto Increment)
+- title           : VARCHAR(255) (Not Null)
+- slug            : VARCHAR(255) (Unique, Not Null) -> URL SEO-friendly
+- content         : LONGTEXT (Not Null)
+- thumbnail_image : VARCHAR(255) (Boleh Null) -> Path file gambar
+- created_at      : TIMESTAMP (Default: CURRENT_TIMESTAMP)
+
+3. Tabel: pages_content
+(Menyimpan teks halaman statis seperti SOP dan Pelayanan dari Rich Text Editor)
+- id              : INT (Primary Key, Auto Increment)
+- page_identifier : VARCHAR(100) (Unique, Not Null) -> Contoh: 'sop-cuti', 'pelayanan'
+- html_content    : LONGTEXT (Boleh Null)
+- last_updated    : TIMESTAMP (Default: CURRENT_TIMESTAMP, Auto Update)
+
+4. Tabel: downloadable_files
+(Menyimpan referensi file PDF untuk kalender, jadwal, dan template form)
+- id            : INT (Primary Key, Auto Increment)
+- file_category : VARCHAR(100) (Not Null) -> Contoh: 'jadwal-kuliah', 'form-cuti'
+- file_name     : VARCHAR(255) (Not Null) -> Nama tampilan file
+- file_path     : VARCHAR(255) (Not Null) -> Lokasi file di /storage/uploads
+- is_active     : TINYINT(1) (Default: 1) -> 1 = File Aktif, 0 = File Lama/Arsip
+- uploaded_at   : TIMESTAMP (Default: CURRENT_TIMESTAMP)
+
+5. Tabel: student_advisors
+(Menyimpan data dosen pembimbing untuk fitur pencarian tertutup)
+- id           : INT (Primary Key, Auto Increment)
+- nim          : VARCHAR(20) (Not Null)
+- student_name : VARCHAR(255) (Not Null)
+- advisor_name : VARCHAR(255) (Not Null)
+- advisor_type : ENUM ('Wali', 'Magang', 'TA') (Not Null)
+
+* Catatan Indexing:
+Wajib membuat Composite Index pada kolom (nim, student_name) di tabel student_advisors untuk performa pencarian Exact Match.
