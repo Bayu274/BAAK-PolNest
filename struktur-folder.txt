@@ -1,0 +1,39 @@
+/polinest-baak
+├── /assets                 # Aset statis yang diakses publik
+│   ├── /css
+│   ├── /js
+│   │   └── search-dosen.js # Fetch API logic untuk pencarian AJAX
+│   └── /images
+├── /config                 # Konfigurasi sistem
+│   ├── database.php        # Instansiasi PDO (Strict Prepared Statements)
+│   ├── constants.php       # Base URL & Environment variables
+│   └── security.php        # Fungsi generator CSRF & Rate Limiting IP
+├── /core                   # Mesin utama (Micro-framework buatan sendiri)
+│   ├── Router.php          # Pemandu URL ke Controller (SEO Friendly Handler)
+│   └── Controller.php      # Base class untuk render view & session checking
+├── /controllers            # Logika Aplikasi (Dilarang ada query SQL di sini)
+│   ├── AuthController.php
+│   ├── NewsController.php
+│   ├── PageController.php  
+│   └── AdvisorController.php
+├── /models                 # Operasi Database murni
+│   ├── Admin.php
+│   ├── News.php            
+│   └── Advisor.php         # Query dengan WHERE nim = ? AND student_name = ?
+├── /views                  # Lapisan Presentasi
+│   ├── /frontend
+│   │   ├── home.php
+│   │   ├── jadwal.php
+│   │   └── search-dosen.php
+│   ├── /backend
+│   │   ├── layout.php      # Master layout backend (Sidebar + Header terpusat)
+│   │   ├── dashboard.php
+│   │   ├── news-form.php   # Berisi input token CSRF tersembunyi
+│   │   └── import-csv.php
+│   └── /errors
+│       └── 404.php
+├── /storage                # File sistem (TIDAK BOLEH DIAKSES LANGSUNG VIA URL)
+│   ├── /uploads            # PDF dan Thumbnail berita
+│   └── .htaccess           # Deny from all (Cegah eksekusi script jahat yang diupload)
+├── .htaccess               # Routing utama (RewriteRule ^(.*)$ index.php?url=$1)
+└── index.php               # Front Controller (Satu-satunya pintu masuk aplikasi)

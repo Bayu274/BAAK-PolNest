@@ -1,0 +1,23 @@
+Alur Sistem (Flow Chart Teknis)Karena sistem terbagi menjadi dua ranah utama, berikut adalah alur eksekusi aplikasi untuk masing-masing modul kritis.
+
+1. Alur Keamanan & Modul Pencarian Dosen (Frontend AJAX)
+Fokus pada modul yang berjalan secara asinkron (pencarian tanpa reload halaman).
+	Langkah 1: Mahasiswa membuka /pencarian-dosen. Router memuat search-dosen.php.
+	Langkah 2: Mahasiswa mengetikkan NIM dan Nama Lengkap persis sesuai ejaan, lalu menekan tombol Cari.
+	Langkah 3: JavaScript Fetch API mengirim HTTP POST Request secara background ke /api/advisors/search membawa payload NIM & Nama.
+	Langkah 4 (Security Gate): AdvisorController menerima request.
+		Check A: Apakah IP rate limit terpenuhi? (Jika terlalu sering, tolak request).
+		Check B: Normalisasi string (Trim spasi, ubah ke lowercase).
+	Langkah 5 (Database): Model Advisor mengeksekusi Prepared Statement SQL. Query wajib mencocokkan NIM AND Nama sekaligus secara persis (bukan LIKE).
+	Langkah 6: Jika tidak ada kecocokan 100%, kembalikan HTTP 404/JSON Kosong. Jika cocok, kembalikan JSON berisi data Dosen Wali/Pembimbing.
+	Langkah 7: JavaScript me-render hasil JSON ke dalam tabel di layar mahasiswa, diamankan dengan proteksi escape string untuk mencegah XSS.
+
+2. Alur Intervensi Admin (Backend Content Management)
+Fokus pada alur edit SOP dengan Rich Text Editor dan manajemen rilis.
+	Langkah 1: Admin mengakses /admin.
+	Langkah 2: Router memeriksa $_SESSION['admin_logged_in']. Jika tidak ada sesi aktif, paksa Redirect ke /login.
+	Langkah 3: Admin memilih menu Edit Halaman Informasi.
+	Langkah 4: PageController mengambil data HTML mentah dari database, dan memuatnya ke view yang telah diinjeksi library TinyMCE/CKEditor. Serta, backend meng- generate Token CSRF acak dan menempelkannya di dalam tag form tersembunyi.
+	Langkah 5: Admin mengubah teks tanpa menyentuh kode, lalu klik Simpan.
+	Langkah 6 (Security Gate): Form disubmit ke /admin/pages/update. PageController wajib memverifikasi token CSRF terlebih dahulu. Jika token tidak cocok (atau kosong), gagalkan eksekusi (Tolak request CSRF).
+	Langkah 7: Eksekusi Prepared Statement UPDATE tabel pages_content. Redirect kembali ke Dashboard dengan pesan sukses.
