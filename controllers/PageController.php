@@ -11,9 +11,20 @@ class PageController extends Controller {
     // ==========================================
     
     public function show($identifier) {
-        // TODO: Ambil data dari database menggunakan model Page
-        // Tampilkan ke view frontend untuk dibaca oleh publik
-        $this->render('frontend/page-detail'); 
+    // 1. Panggil Model
+    require_once __DIR__ . '/../models/Page.php';
+    $pageModel = new Page();
+    
+    // 2. Ambil data dari database
+    $dataPage = $pageModel->getByIdentifier($identifier); 
+    
+    // 3. (Opsional) Jika halaman tidak ada di database, tampilkan error
+    if (!$dataPage) {
+        die("404 - Halaman tidak ditemukan.");
+    }
+
+    // 4. Load view frontend dan kirim datanya
+    $this->render('frontend/page-detail', ['page' => $dataPage]); 
     }
 
     // ==========================================
@@ -21,13 +32,15 @@ class PageController extends Controller {
     // ==========================================
 
     public function editForm($identifier) {
-        // PROTEKSI: Cek login admin (Method requireLogin akan dibuat oleh Dev 1)
-        // $this->requireLogin();
+    // PROTEKSI: Cek login admin (Method requireLogin akan dibuat oleh Dev 1)
+    // $this->requireLogin();
 
-        // TODO: Ambil data dari model Page untuk ditampilkan di dalam textarea Rich Text Editor
-        
-        // Load view backend (pages-edit.php)
-        $this->render('backend/pages-edit');
+    require_once __DIR__ . '/../models/Page.php';
+    $pageModel = new Page();
+    $dataPage = $pageModel->getByIdentifier($identifier);     
+    
+    // Load view backend (pages-edit.php) dan kirimkan datanya
+    $this->render('backend/pages-edit', ['page' => $dataPage]);
     }
 
     public function save($identifier) {

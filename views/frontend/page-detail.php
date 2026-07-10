@@ -14,19 +14,7 @@
                     
                     <div class="page-content text-secondary" style="line-height: 1.8; font-size: 1.1rem;">
                         <p>Selamat datang di pusat layanan administrasi mahasiswa Politeknik Nest. Berikut adalah standar operasional prosedur untuk berbagai layanan kami:</p>
-                        
-                        <h4 class="mt-4 fw-bold text-dark">1. Pengajuan Cuti Akademik</h4>
-                        <ul>
-                            <li>Mahasiswa mengunduh formulir pengajuan cuti pada menu dokumen.</li>
-                            <li>Formulir wajib ditandatangani oleh Dosen Wali.</li>
-                            <li>Serahkan formulir fisik ke loket BAAK beserta KTM (Kartu Tanda Mahasiswa) asli.</li>
-                        </ul>
-
-                        <h4 class="mt-4 fw-bold text-dark">2. Pindah Kelas</h4>
-                        <ul>
-                            <li>Proses pindah kelas hanya dilayani pada 2 minggu pertama awal semester.</li>
-                            <li>Mahasiswa wajib melampirkan surat persetujuan dari Ketua Program Studi.</li>
-                        </ul>
+                        <?= $page['html_content'] ?? '<p>Konten belum tersedia.</p>' ?>
                     </div>
 
                 </div>
