@@ -55,4 +55,50 @@ class Advisor {
             return [];
         }
     }
+
+    /**
+     * Menghapus data lama dan memasukkan data baru dalam satu transaksi yang aman.
+     * Menggunakan DELETE (bukan TRUNCATE) agar mendukung Rollback InnoDB.
+     * * @param array $rows Data array multi-dimensi hasil parsing CSV
+     * @return bool True jika berhasil, melempar Exception jika gagal
+     */
+    public function truncateAndReload(array $rows): bool {
+        if (empty($rows)) {
+            throw new Exception("Data CSV kosong, proses impor dibatalkan.");
+        }
+
+        try {
+            // 1. Mulai Transaksi
+            $this->db->beginTransaction();
+
+            // 2. Hapus seluruh data lama
+            $stmtDelete = $this->db->prepare("DELETE FROM student_advisors");
+            $stmtDelete->execute();
+
+            // 3. Siapkan kueri Insert (Prepared Statement)
+            $sqlInsert = "INSERT INTO student_advisors (nim, student_name, advisor_name, advisor_type) 
+                          VALUES (:nim, :student_name, :advisor_name, :advisor_type)";
+            $stmtInsert = $this->db->prepare($sqlInsert);
+
+            // 4. Lakukan Bulk Insert (Looping)
+            foreach ($rows as $row) {
+                $stmtInsert->execute([
+                    ':nim'          => $row['nim'],
+                    ':student_name' => $row['student_name'],
+                    ':advisor_name' => $row['advisor_name'],
+                    ':advisor_type' => $row['advisor_type']
+                ]);
+            }
+
+            // 5. Jika semua eksekusi di atas mulus, simpan permanen
+            $this->db->commit();
+            return true;
+
+        } catch (Throwable $e) {
+            // Jika ada 1 saja query yang gagal, batalkan SEMUA perubahan!
+            $this->db->rollBack();
+            error_log("Gagal Impor CSV: " . $e->getMessage());
+            throw new Exception("Terjadi kesalahan sistem saat menyimpan data ke database. Seluruh perubahan telah dibatalkan.");
+        }
+    }
 }
