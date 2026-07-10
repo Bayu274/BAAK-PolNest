@@ -86,4 +86,108 @@ class AdvisorController extends Controller {
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
+
+    /**
+     * Menampilkan antarmuka Halaman Impor CSV di Backend
+     */
+    public function importCsvForm(): void {
+        // Asumsi base Controller Dev 1 memiliki render khusus untuk backend (layout)
+        $this->render('backend/advisor-import', [
+            'page_title' => 'Impor Data Dosen Pembimbing',
+            // Panggil token CSRF dari security.php (wajib)
+            'csrf_token' => generateCsrfToken()
+        ]);
+    }
+
+    /**
+     * Memproses file CSV yang diunggah Admin (Validasi Fail-Fast)
+     */
+    public function processImport(): void {
+        // 1. Validasi CSRF Token
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            die("Error 403: Sesi tidak valid atau kadaluarsa (CSRF Violation).");
+        }
+
+        // 2. Validasi Kehadiran File dan Error Upload
+        if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+            die("Error: File gagal diunggah atau tidak ditemukan.");
+        }
+
+        $fileTmp = $_FILES['csv_file']['tmp_name'];
+        $fileName = $_FILES['csv_file']['name'];
+        $fileSize = $_FILES['csv_file']['size'];
+
+        // 3. Validasi Ukuran (Maks 5MB) dan Ekstensi
+        if ($fileSize > 5 * 1024 * 1024) {
+            die("Error: Ukuran file maksimal 5MB.");
+        }
+        
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        if ($ext !== 'csv') {
+            die("Error: Ekstensi file wajib .csv");
+        }
+
+        // 4. Validasi MIME Type secara Strict menggunakan finfo
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $fileTmp);
+        finfo_close($finfo);
+
+        $allowedMimes = ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'];
+        if (!in_array($mime, $allowedMimes)) {
+            die("Error: Tipe file tidak dikenali sebagai format teks CSV yang valid.");
+        }
+
+        // 5. Ekstraksi dan Validasi Konten CSV
+        $rows = [];
+        if (($handle = fopen($fileTmp, "r")) !== false) {
+            // Ambil baris pertama sebagai Header
+            $header = fgetcsv($handle, 1000, ",");
+            
+            // Validasi struktur Header
+            $expectedHeader = ['nim', 'student_name', 'advisor_name', 'advisor_type'];
+            if ($header !== $expectedHeader) {
+                fclose($handle);
+                die("Error: Format kolom CSV salah. Harus persis: nim, student_name, advisor_name, advisor_type");
+            }
+
+            // Baca isi baris per baris
+            $rowNumber = 2; // Baris 1 adalah header
+            while (($data = fgetcsv($handle, 1000, ",")) !== false) {
+                // Lewati baris kosong
+                if (array_filter($data) === []) continue;
+
+                if (count($data) !== 4) {
+                    fclose($handle);
+                    die("Error: Baris ke-{$rowNumber} memiliki jumlah kolom yang tidak valid.");
+                }
+
+                $type = trim($data[3]);
+                if (!in_array($type, ['Wali', 'Magang', 'TA'])) {
+                    fclose($handle);
+                    die("Error: Baris ke-{$rowNumber} memiliki jenis pembimbing yang salah. Hanya diizinkan: Wali, Magang, TA.");
+                }
+
+                $rows[] = [
+                    'nim'          => trim($data[0]),
+                    'student_name' => trim($data[1]),
+                    'advisor_name' => trim($data[2]),
+                    'advisor_type' => $type
+                ];
+                $rowNumber++;
+            }
+            fclose($handle);
+        }
+
+        // 6. Jalankan Proses Transaksional di Model
+        try {
+            $model = new Advisor();
+            $model->truncateAndReload($rows);
+            // Redirect kembali dengan pesan sukses (menggunakan session flash jika ada di base controller Dev 1)
+            header("Location: /admin/import-csv?status=success");
+            exit;
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
 }
