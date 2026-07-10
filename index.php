@@ -7,6 +7,7 @@ require_once __DIR__ . '/core/Controller.php';
 require_once __DIR__ . '/models/Admin.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/DashboardController.php';
+require_once __DIR__ . '/controllers/PageController.php';
 
 $router = new Router();
 
@@ -18,6 +19,11 @@ $router->addRoute('GET', '/logout', [$authController, 'logout']);
 
 $dashboardController = new DashboardController();
 $router->addRoute('GET', '/dashboard', [$dashboardController, 'index']);
+
+$pageController = new PageController();
+$router->addRoute('GET', '/admin/pages/edit/sop-cuti', function() use ($pageController) {
+    $pageController->editForm('sop-cuti');
+});
 
 $router->addRoute('GET', '/test', function () {
     echo "Router berhasil jalan!";
