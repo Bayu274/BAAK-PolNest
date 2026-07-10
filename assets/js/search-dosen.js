@@ -1,68 +1,115 @@
-// File: /assets/js/search-dosen.js
+/**
+ * BAAK-PolNest - Search Engine Logic
+ * Branch: feature/advisor-search
+ */
 
-document.addEventListener('DOMContentLoaded', function() {
-    const searchForm = document.getElementById('form-search-dosen');
-    const resultContainer = document.getElementById('result-container');
-    const resultContent = document.getElementById('result-content');
+document.addEventListener('DOMContentLoaded', function () {
+    const searchForm = document.getElementById('form-cari-dosen');
+    const resultBox = document.getElementById('container-hasil-pencarian');
+    const resultBody = document.getElementById('table-body-hasil');
+    const alertBox = document.getElementById('alert-pesan-error');
 
-    // Fungsi utilitas untuk mencegah XSS saat me-render data ke HTML (Wajib penuhi Checklist Keamanan)
-    function escapeHTML(str) {
-        return str.replace(/[&<>'"]/g, function(tag) {
-            const charsToReplace = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            };
-            return charsToReplace[tag] || tag;
+    if (!searchForm) return;
+
+    searchForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Ambil elemen input secara langsung
+        const inputNim = document.getElementById('input-nim');
+        const inputNama = document.getElementById('input-nama');
+        const submitBtn = document.getElementById('btn-submit-cari');
+
+        // Sembunyikan state lama
+        alertBox.classList.add('d-none');
+        alertBox.textContent = '';
+        resultBox.classList.add('d-none');
+        resultBody.textContent = ''; // Aman mengosongkan tabel dengan cara ini
+
+        const nimValue = inputNim.value.trim();
+        const namaValue = inputNama.value.trim();
+
+        if (nimValue === '' || namaValue === '') {
+            tampilkanError('NIM dan Nama Lengkap tidak boleh kosong.');
+            return;
+        }
+
+        // Tampilkan state loading pada tombol
+        submitBtn.disabled = true;
+        const txtAsli = submitBtn.textContent;
+        submitBtn.textContent = 'Mencari...';
+
+        // Lakukan pemanggilan AJAX Fetch API
+        fetch('/api/advisors/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nim: nimValue,
+                student_name: namaValue
+            })
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Terjadi kesalahan sistem.');
+            }
+            return data;
+        })
+        .then(res => {
+            if (res.status === 'success' && Array.isArray(res.data)) {
+                renderTabelHasil(res.data);
+            } else {
+                tampilkanError('Format data yang diterima tidak sesuai.');
+            }
+        })
+        .catch(error => {
+            tampilkanError(error.message);
+        })
+        .finally(() => {
+            // Kembalikan state tombol
+            submitBtn.disabled = false;
+            submitBtn.textContent = txtAsli;
         });
+    });
+
+    function tampilkanError(pesan) {
+        alertBox.textContent = pesan; // Menggunakan textContent, kebal XSS
+        alertBox.classList.remove('d-none');
     }
 
-    searchForm.addEventListener('submit', function(e) {
-        // MENCEGAH HALAMAN RELOAD! Ini nyawa dari spesifikasi PRD.
-        e.preventDefault(); 
+    function renderTabelHasil(items) {
+        items.forEach((item, index) => {
+            const row = document.createElement('tr');
 
-        const nimInput = document.getElementById('inputNIM').value.trim();
-        const namaInput = document.getElementById('inputNama').value.trim();
+            const cellNo = document.createElement('td');
+            cellNo.textContent = String(index + 1);
+            row.appendChild(cellNo);
 
-        // Tampilkan status "Loading" untuk UX yang baik
-        resultContainer.classList.remove('d-none');
-        resultContent.innerHTML = '<div class="text-center text-muted spinner-border spinner-border-sm" role="status"></div> <span class="ms-2">Mencari data ke server...</span>';
-
-        // --- SIMULASI FETCH API (MOCK DATA) ---
-        // Karena backend belum jadi, kita gunakan setTimeout untuk meniru proses jaringan
-        setTimeout(() => {
+            const cellTipe = document.createElement('td');
+            const badge = document.createElement('span');
             
-            /* * NANTI DI TAHAP 2, BLOK KODE INI AKAN DIGANTI DENGAN:
-             * fetch('/api/advisors/search', { method: 'POST', body: ... })
-             * .then(res => res.json())
-             */
-
-            // Simulasi: Menguji aturan PRD (Harus Cocok NIM + Nama Persis)
-            if (nimInput === "2026001" && namaInput.toLowerCase() === "dimas pratama") {
-                // Berhasil
-                resultContent.innerHTML = `
-                    <div class="table-responsive">
-                        <table class="table table-bordered mb-0">
-                            <tbody>
-                                <tr><th style="width: 35%">NIM</th><td>${escapeHTML(nimInput)}</td></tr>
-                                <tr><th>Nama Mahasiswa</th><td>${escapeHTML(namaInput)}</td></tr>
-                                <tr><th>Dosen Wali</th><td>Dr. Hendra, S.T., M.T.</td></tr>
-                                <tr><th>Dosen Pembimbing Magang</th><td>Siti Aminah, M.Kom.</td></tr>
-                                <tr><th>Dosen Pembimbing TA</th><td>-</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+            // Map badge secara manual di client, dilarang ambil class bootstrap langsung dari string server
+            badge.className = 'badge';
+            if (item.advisor_type === 'Wali') {
+                badge.classList.add('bg-primary');
+            } else if (item.advisor_type === 'Magang') {
+                badge.classList.add('bg-success');
             } else {
-                // Gagal: Syarat NIM + Nama tidak terpenuhi
-                resultContent.innerHTML = `
-                    <div class="alert alert-danger mb-0">
-                        Data tidak ditemukan. Pastikan <strong>NIM</strong> dan <strong>Nama Lengkap</strong> sesuai dengan data BAAK.
-                    </div>
-                `;
+                badge.classList.add('bg-warning', 'text-dark');
             }
-        }, 1200); // Simulasi delay internet 1,2 detik
-    });
+            badge.textContent = item.advisor_type;
+            cellTipe.appendChild(badge);
+            row.appendChild(cellTipe);
+
+            const cellNamaDosen = document.createElement('td');
+            cellNamaDosen.textContent = item.advisor_name || '-'; // textContent menjamin karakter tag HTML dirender sebagai teks biasa
+            cellNamaDosen.classList.add('fw-bold');
+            row.appendChild(cellNamaDosen);
+
+            resultBody.appendChild(row);
+        });
+
+        resultBox.classList.remove('d-none');
+    }
 });
