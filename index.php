@@ -1,5 +1,5 @@
 <?php
-
+session_start(); 
 require_once __DIR__ . '/config/constants.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/Router.php';
@@ -24,9 +24,11 @@ $pageController = new PageController();
 $router->addRoute('GET', '/admin/pages/edit/sop-cuti', function() use ($pageController) {
     $pageController->editForm('sop-cuti');
 });
-
-$router->addRoute('GET', '/test', function () {
-    echo "Router berhasil jalan!";
+$router->addRoute('POST', '/admin/pages/save/sop-cuti', function() use ($pageController) {
+    $pageController->save('sop-cuti');
+});
+$router->addRoute('GET', '/pages/sop-cuti', function() use ($pageController) {
+    $pageController->show('sop-cuti');
 });
 
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';

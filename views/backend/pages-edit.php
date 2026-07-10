@@ -1,3 +1,12 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+// Generate token dummy jika belum login
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <main class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Edit Konten Halaman</h2>
@@ -18,24 +27,16 @@
             <h5 class="mb-0">Form Edit Halaman: <span class="fw-light">SOP Pendaftaran Cuti</span></h5>
         </div>
         <div class="card-body">
-            <form action="/admin/pages/update" method="POST">
+            <form action="/BAAK-PolNest/admin/pages/save/sop-cuti" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token']; ?>">
                 
-                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                
-                <input type="hidden" name="identifier" value="sop-cuti">
+                <input type="hidden" name="identifier" value="sop-cuti">        
 
                 <div class="mb-4">
                     <label for="html_content" class="form-label text-muted">Gunakan editor di bawah ini untuk mengubah isi konten, menebalkan teks, atau membuat daftar <em>(list)</em>. Perubahan akan langsung terlihat oleh mahasiswa di halaman publik.</label>
                     
-                    <textarea class="form-control rich-text-editor" id="html_content" name="html_content" rows="15">
-                        <h2>Prosedur Pengajuan Cuti Akademik</h2>
-                        <p>Berikut adalah langkah-langkah yang harus dilakukan mahasiswa:</p>
-                        <ol>
-                            <li>Mengunduh form cuti akademik di halaman ini.</li>
-                            <li>Mengisi data diri secara lengkap.</li>
-                            <li>Meminta tanda tangan Dosen Wali.</li>
-                            <li>Menyerahkan ke loket BAAK.</li>
-                        </ol>
+                    <textarea name="html_content" id="html_content" rows="10" style="width: 100%;">
+                        <?= $page['html_content'] ?? '' ?>
                     </textarea>
                 </div>
 
@@ -58,4 +59,9 @@
         toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link',
         height: 400
     });
+</script>
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+
+<script>
+    CKEDITOR.replace('html_content');
 </script>
