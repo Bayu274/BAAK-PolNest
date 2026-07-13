@@ -6,9 +6,14 @@ class News {
     }
 
     public function getAll($limit = null) {
-        $query = "SELECT * FROM news ORDER BY created_at DESC";
-        if ($limit) $query .= " LIMIT " . (int)$limit;
-        return $this->db->query($query)->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "SELECT * FROM news ORDER BY created_at DESC";
+        if ($limit) {
+            // Pastikan limit adalah angka untuk keamanan
+            $sql .= " LIMIT " . (int)$limit;
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function create($data) {
@@ -47,4 +52,9 @@ class News {
     $stmt = $this->db->prepare("DELETE FROM news WHERE id = ?");
     return $stmt->execute([$id]);
 }
+    public function getBySlug($slug) {
+        $stmt = $this->db->prepare("SELECT * FROM news WHERE slug = ? LIMIT 1");
+        $stmt->execute([$slug]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
