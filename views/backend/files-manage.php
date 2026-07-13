@@ -1,0 +1,87 @@
+<!-- views/backend/files-manage.php -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Form Upload -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> Unggah File Baru</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/files/upload" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?php echo e($data['csrf_token']); ?>">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kategori Dokumen</label>
+                            <select name="file_category" class="form-select" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                <?php foreach ($data['categories'] as $cat): ?>
+                                    <option value="<?php echo e($cat); ?>"><?php echo e(ucwords(str_replace('_', ' ', $cat))); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih File (PDF / DOCX)</label>
+                            <input type="file" name="document_file" class="form-control" accept=".pdf,.docx" required>
+                            <div class="form-text text-muted">Maksimal ukuran 10 MB. Mengunggah file pada kategori yang sama akan menonaktifkan file lama secara otomatis.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Simpan File</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel File Aktif -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-folder2-open"></i> Dokumen Aktif Saat Ini</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Kategori</th>
+                                <th>Nama File</th>
+                                <th>Tgl Unggah</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($data['files'])): ?>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">Belum ada dokumen yang diunggah.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($data['files'] as $file): ?>
+                                <tr>
+                                    <td><span class="badge bg-secondary"><?php echo e(strtoupper(str_replace('_', ' ', $file['file_category']))); ?></span></td>
+                                    <td class="fw-bold"><?php echo e($file['file_name']); ?></td>
+                                    <td><?php echo e(date('d M Y H:i', strtotime($file['created_at']))); ?></td>
+                                    <td>
+                                        <!-- Tombol Download (Akses langsung ke folder fisik) -->
+                                        <a href="/storage/uploads/<?php echo e($file['file_path']); ?>" class="btn btn-sm btn-outline-primary" target="_blank" download>
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        
+                                        <!-- Form Soft Delete -->
+                                        <form action="/admin/files/delete" method="POST" class="d-inline" onsubmit="return confirm('Hapus file ini?');">
+                                            <input type="hidden" name="csrf_token" value="<?php echo e($data['csrf_token']); ?>">
+                                            <input type="hidden" name="file_id" value="<?php echo e($file['id']); ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
