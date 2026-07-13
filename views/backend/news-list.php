@@ -2,7 +2,7 @@
 // Pastikan file header backend (yang berisi tag <head> dan Bootstrap CSS) dipanggil di sini.
 // Jika Dev 1 sudah membuat layout.php, panggil file tersebut. 
 // Jika belum, gunakan header yang kita buat sebelumnya.
-require_once __DIR__ . '/../layout/header.php'; 
+require_once __DIR__ . '/../layout/public_header.php'; 
 ?>
 
 <div class="container mt-4 mb-5">
@@ -68,5 +68,5 @@ require_once __DIR__ . '/../layout/header.php';
 
 <?php 
 // Panggil footer backend di sini
-require_once __DIR__ . '/../layout/footer.php'; 
+require_once __DIR__ . '/../layout/public_footer.php'; 
 ?>

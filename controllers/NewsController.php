@@ -15,26 +15,26 @@ class NewsController extends Controller {
         // 1. Ambil data dari form
         $title = $_POST['title'];
         $content = $_POST['content'];
-        $thumbnail = null;
+        $thumbnail_image = null; // Ubah nama variabel agar konsisten
 
-        // 2. Proses upload file jika ada
-        if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['error'] == 0) {
-            $thumbnail = 'news_' . time() . '_' . $_FILES['thumbnail']['name'];
-            move_uploaded_file($_FILES['thumbnail']['tmp_name'], __DIR__ . '/../assets/uploads/' . $thumbnail);
+        // 2. Proses upload file jika ada (Sesuaikan dengan name="thumbnail_image" di form)
+        if (isset($_FILES['thumbnail_image']) && $_FILES['thumbnail_image']['error'] == 0) {
+            $thumbnail_image = 'news_' . time() . '_' . $_FILES['thumbnail_image']['name'];
+            move_uploaded_file($_FILES['thumbnail_image']['tmp_name'], __DIR__ . '/../assets/uploads/' . $thumbnail_image);
         }
 
         // 3. Simpan ke database melalui model
         $this->newsModel->create([
-            'title'      => $title,
-            'slug'       => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title))),
-            'content'    => $content,
-            'thumbnail'  => $thumbnail,
-            'created_by' => $_SESSION['admin_id'] ?? 1 // Pastikan ID 1 ada di tabel admin_users
+            'title'           => $title,
+            'slug'            => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title))),
+            'content'         => $content,
+            'thumbnail_image' => $thumbnail_image, // Samakan key-nya dengan field di database
+            'created_by'      => $_SESSION['admin_id'] ?? 1
         ]);
 
         // 4. Redirect kembali ke daftar berita
         header("Location: /admin/news");
-        exit(); // Tambahkan exit() agar script berhenti setelah redirect
+        exit(); 
     }
     // Tambahkan di dalam NewsController.php
     public function editForm($id) {
@@ -51,31 +51,36 @@ class NewsController extends Controller {
     
     $this->render('backend/news-form', ['news' => $news, 'isEdit' => true]);
     }
-    public function update() {
-    // 1. Ambil data dari form
+   public function update() {
     $id = $_POST['id'];
     $title = $_POST['title'];
     $content = $_POST['content'];
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
 
-    $thumbnail = null;
+    // 1. Ambil data lama dari database terlebih dahulu
+    $oldNews = $this->newsModel->getById($id); 
+    $thumbnail_image = $oldNews['thumbnail_image']; // Set default ke gambar lama
 
     // 2. Cek apakah ada file gambar BARU yang diupload
-    if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['error'] == 0) {
-        $thumbnail = 'news_' . time() . '_' . $_FILES['thumbnail']['name'];
-        move_uploaded_file($_FILES['thumbnail']['tmp_name'], __DIR__ . '/../assets/uploads/' . $thumbnail);
+    if (isset($_FILES['thumbnail_image']) && $_FILES['thumbnail_image']['error'] == 0) {
+        $thumbnail_image = 'news_' . time() . '_' . $_FILES['thumbnail_image']['name'];
+        move_uploaded_file($_FILES['thumbnail_image']['tmp_name'], __DIR__ . '/../assets/uploads/' . $thumbnail_image);
+        
+        // Opsional: Hapus file gambar lama agar tidak menuhin storage
+        if (!empty($oldNews['thumbnail_image']) && file_exists(__DIR__ . '/../assets/uploads/' . $oldNews['thumbnail_image'])) {
+            unlink(__DIR__ . '/../assets/uploads/' . $oldNews['thumbnail_image']);
+        }
     }
 
-    // 3. Kirim data ke model untuk di-update
+    // 3. Kirim ke model
     $this->newsModel->update([
-        'id'        => $id,
-        'title'     => $title,
-        'slug'      => $slug,
-        'content'   => $content,
-        'thumbnail' => $thumbnail // Ini akan bernilai nama file baru, atau null jika tidak ada gambar baru
+        'id'              => $id,
+        'title'           => $title,
+        'slug'            => $slug,
+        'content'         => $content,
+        'thumbnail_image' => $thumbnail_image
     ]);
 
-    // 4. Kembali ke halaman list berita
     header("Location: /admin/news");
     exit();
 }
