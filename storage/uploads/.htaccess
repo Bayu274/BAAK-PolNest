@@ -1,0 +1,23 @@
+# Mematikan eksekusi PHP secara mutlak di dalam folder ini
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# Mencegah eksekusi CGI atau skrip lainnya
+Options -ExecCGI
+AddHandler cgi-script .php .php3 .php4 .phtml .pl .py .jsp .asp .htm .shtml .sh .cgi
+
+# Mencegah file dirender sebagai HTML/PHP oleh browser (force download untuk ekstensi mencurigakan)
+ForceType application/octet-stream
+<FilesMatch "(?i)\.(pdf|docx)$">
+    ForceType none
+</FilesMatch>
+
+# Menutup fitur index direktori
+Options -Indexes
