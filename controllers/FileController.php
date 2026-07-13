@@ -18,7 +18,7 @@ class FileController extends Controller {
      * Menampilkan halaman Manajemen File
      */
     public function listAdmin(): void {
-        $this->requireLogin(); // <-- DITAMBAHKAN: proteksi akses admin
+        $this->requireLogin();
 
         $model = new DownloadableFile();
         $files = $model->getActiveFiles();
@@ -35,7 +35,7 @@ class FileController extends Controller {
      * Memproses Unggahan Dokumen dengan Validasi Berlapis
      */
     public function store(): void {
-        $this->requireLogin(); // <-- DITAMBAHKAN: proteksi akses admin
+        $this->requireLogin();
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
@@ -55,18 +55,15 @@ class FileController extends Controller {
         $fileSize = $_FILES['document_file']['size'];
         $originalName = $_FILES['document_file']['name'];
 
-        // 1. Validasi Ukuran (Maks 10MB)
         if ($fileSize > self::MAX_DOCUMENT_BYTES) {
             die("Error: Ukuran file melebihi batas 10MB.");
         }
 
-        // 2. Validasi Ekstensi Fisik
         $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         if (!in_array($ext, ['pdf', 'docx'])) {
             die("Error: Hanya file PDF dan DOCX yang diizinkan.");
         }
 
-        // 3. Validasi MIME Type secara Strict (Membaca bit dari dalam file, bukan header)
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $fileTmp);
         finfo_close($finfo);
@@ -80,11 +77,9 @@ class FileController extends Controller {
             die("Error: Konten file tidak cocok dengan ekstensi dokumen yang sah.");
         }
 
-        // 4. Pengacakan Nama File untuk Mencegah Enumerasi
         $randomName = 'doc_' . bin2hex(random_bytes(8)) . '.' . $ext;
         $destination = self::UPLOAD_DIR . $randomName;
 
-        // 5. Eksekusi Simpan Fisik & Basis Data
         if (move_uploaded_file($fileTmp, $destination)) {
             try {
                 $adminId = $_SESSION['admin_id'] ?? 1;
@@ -92,7 +87,7 @@ class FileController extends Controller {
                 $model = new DownloadableFile();
                 $model->replaceByCategory($category, $originalName, $randomName, $adminId);
 
-                header("Location: " . BASE_URL . "admin/files?status=success"); // <-- DIPERBAIKI: pakai BASE_URL
+                header("Location: " . BASE_URL . "admin/files?status=success");
                 exit;
             } catch (Exception $e) {
                 unlink($destination);
@@ -107,7 +102,7 @@ class FileController extends Controller {
      * Menghapus (Soft Delete) file
      */
     public function delete(): void {
-        $this->requireLogin(); // <-- DITAMBAHKAN: proteksi akses admin
+        $this->requireLogin();
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
@@ -120,7 +115,7 @@ class FileController extends Controller {
             $model->deactivate($id);
         }
         
-        header("Location: " . BASE_URL . "admin/files?status=deleted"); // <-- DIPERBAIKI: pakai BASE_URL
+        header("Location: " . BASE_URL . "admin/files?status=deleted");
         exit;
     }
 }

@@ -1,119 +1,241 @@
--- ============================================================
--- Portal Informasi BAAK — Politeknik Nest
--- Database Schema (MySQL / InnoDB) — v2
--- Referensi: Struktur_Database.txt + PRD.md v4.0
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
 --
--- CHANGELOG dari versi sebelumnya:
--- - rate_limit_attempts: dikonfirmasi jalan (bukan lagi opsional)
--- - student_advisors.imported_at: dikonfirmasi jalan
--- - [BARU] admin_id ditambahkan ke news, pages_content,
---   downloadable_files untuk audit trail (siapa yang buat/ubah/upload)
--- - [BARU] news.updated_at, pages_content sudah punya last_updated
--- - Semua FK ke admin_users pakai ON DELETE SET NULL — supaya kalau
---   akun admin suatu saat dihapus, konten/berita/file yang sudah
---   dipublikasikan tidak ikut hilang atau gagal delete
--- ============================================================
+-- Host: 127.0.0.1
+-- Generation Time: Jul 13, 2026 at 04:59 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
-CREATE DATABASE IF NOT EXISTS polinest_baak
-    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
-USE polinest_baak;
 
--- ------------------------------------------------------------
--- 1. admin_users
--- ------------------------------------------------------------
-CREATE TABLE admin_users (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    username    VARCHAR(50)  NOT NULL UNIQUE,
-    password    VARCHAR(255) NOT NULL,          -- password_hash() bcrypt
-    created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
--- ------------------------------------------------------------
--- 2. news
--- [BARU] created_by: melacak admin mana yang membuat/publish artikel
--- [BARU] updated_at: melacak kapan artikel terakhir diedit
--- ------------------------------------------------------------
-CREATE TABLE news (
-    id               INT AUTO_INCREMENT PRIMARY KEY,
-    title            VARCHAR(255) NOT NULL,
-    slug             VARCHAR(255) NOT NULL UNIQUE,
-    content          LONGTEXT     NOT NULL,
-    thumbnail_image  VARCHAR(255) DEFAULT NULL,
-    created_by       INT DEFAULT NULL,
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_created_at (created_at),   -- untuk sorting feed berita terbaru
-    CONSTRAINT fk_news_admin FOREIGN KEY (created_by)
-        REFERENCES admin_users(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+--
+-- Database: `polinest_baak`
+--
 
--- ------------------------------------------------------------
--- 3. pages_content
--- [BARU] updated_by: melacak admin mana yang terakhir edit halaman
--- ------------------------------------------------------------
-CREATE TABLE pages_content (
-    id               INT AUTO_INCREMENT PRIMARY KEY,
-    page_identifier  VARCHAR(100) NOT NULL UNIQUE,
-    html_content     LONGTEXT     DEFAULT NULL,
-    updated_by       INT DEFAULT NULL,
-    last_updated     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_pages_admin FOREIGN KEY (updated_by)
-        REFERENCES admin_users(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+-- --------------------------------------------------------
 
--- ------------------------------------------------------------
--- 4. downloadable_files
--- [BARU] uploaded_by: melacak admin mana yang upload/replace file
--- ------------------------------------------------------------
-CREATE TABLE downloadable_files (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    file_category   VARCHAR(100) NOT NULL,
-    file_name       VARCHAR(255) NOT NULL,
-    file_path       VARCHAR(255) NOT NULL,
-    is_active       TINYINT(1)   NOT NULL DEFAULT 1,
-    uploaded_by     INT DEFAULT NULL,
-    uploaded_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_category_active (file_category, is_active),
-    CONSTRAINT fk_files_admin FOREIGN KEY (uploaded_by)
-        REFERENCES admin_users(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+--
+-- Table structure for table `admin_users`
+--
 
--- ------------------------------------------------------------
--- 5. student_advisors
--- imported_at dikonfirmasi jalan — melacak kapan CSV terakhir di-import,
--- berguna kalau ada laporan data pembimbing salah/usang.
--- ------------------------------------------------------------
-CREATE TABLE student_advisors (
-    id             INT AUTO_INCREMENT PRIMARY KEY,
-    nim            VARCHAR(20)  NOT NULL,
-    student_name   VARCHAR(255) NOT NULL,
-    advisor_name   VARCHAR(255) NOT NULL,
-    advisor_type   ENUM('Wali','Magang','TA') NOT NULL,
-    imported_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_nim_student_name (nim, student_name)   -- composite index wajib (PRD Bagian 5)
-) ENGINE=InnoDB;
+CREATE TABLE `admin_users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ------------------------------------------------------------
--- 6. rate_limit_attempts
--- Dikonfirmasi jalan. Session TIDAK dipakai karena mudah di-bypass
--- (buka tab/browser baru). Perlu job pembersih baris lama secara
--- berkala (mis. DELETE WHERE window_start < NOW() - INTERVAL 1 HOUR)
--- supaya tabel ini tidak membengkak tanpa batas — belum ada mekanisme
--- otomatis untuk ini, masih perlu diputuskan (cron job / dibersihkan
--- saat request masuk / event scheduler MySQL).
--- ------------------------------------------------------------
-CREATE TABLE rate_limit_attempts (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    ip_address      VARCHAR(45) NOT NULL,   -- VARCHAR(45) agar muat IPv6
-    endpoint        VARCHAR(100) NOT NULL,  -- ex: 'search_advisor'
-    attempt_count   INT NOT NULL DEFAULT 1,
-    window_start    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_ip_endpoint (ip_address, endpoint)
-) ENGINE=InnoDB;
+--
+-- Dumping data for table `admin_users`
+--
 
--- ------------------------------------------------------------
--- Seed data contoh (opsional — ganti hash password sebelum dipakai)
--- ------------------------------------------------------------
--- INSERT INTO admin_users (username, password)
--- VALUES ('admin', '$2y$10$GANTI_DENGAN_HASIL_password_hash()');
+INSERT INTO `admin_users` (`id`, `username`, `password`, `created_at`) VALUES
+(1, 'admin', 'admin123', '2026-07-10 07:39:41');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `downloadable_files`
+--
+
+CREATE TABLE `downloadable_files` (
+  `id` int(11) NOT NULL,
+  `file_category` varchar(100) NOT NULL,
+  `file_name` varchar(255) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `uploaded_by` int(11) DEFAULT NULL,
+  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `news`
+--
+
+CREATE TABLE `news` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `content` longtext NOT NULL,
+  `thumbnail_image` varchar(255) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pages_content`
+--
+
+CREATE TABLE `pages_content` (
+  `id` int(11) NOT NULL,
+  `page_identifier` varchar(100) NOT NULL,
+  `html_content` longtext DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `pages_content`
+--
+
+INSERT INTO `pages_content` (`id`, `page_identifier`, `html_content`, `updated_by`, `last_updated`) VALUES
+(1, 'sop-cuti', '<p>TES FITUR&nbsp;</p>\r\n', NULL, '2026-07-10 05:57:37');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rate_limit_attempts`
+--
+
+CREATE TABLE `rate_limit_attempts` (
+  `id` int(11) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `endpoint` varchar(100) NOT NULL,
+  `attempt_count` int(11) NOT NULL DEFAULT 1,
+  `window_start` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_advisors`
+--
+
+CREATE TABLE `student_advisors` (
+  `id` int(11) NOT NULL,
+  `nim` varchar(20) NOT NULL,
+  `student_name` varchar(255) NOT NULL,
+  `advisor_name` varchar(255) NOT NULL,
+  `advisor_type` enum('Wali','Magang','TA') NOT NULL,
+  `imported_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `admin_users`
+--
+ALTER TABLE `admin_users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `downloadable_files`
+--
+ALTER TABLE `downloadable_files`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_category_active` (`file_category`,`is_active`),
+  ADD KEY `fk_files_admin` (`uploaded_by`);
+
+--
+-- Indexes for table `news`
+--
+ALTER TABLE `news`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `pages_content`
+--
+ALTER TABLE `pages_content`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `page_identifier` (`page_identifier`),
+  ADD KEY `fk_pages_admin` (`updated_by`);
+
+--
+-- Indexes for table `rate_limit_attempts`
+--
+ALTER TABLE `rate_limit_attempts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_ip_endpoint` (`ip_address`,`endpoint`);
+
+--
+-- Indexes for table `student_advisors`
+--
+ALTER TABLE `student_advisors`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_nim_student_name` (`nim`,`student_name`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `admin_users`
+--
+ALTER TABLE `admin_users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `downloadable_files`
+--
+ALTER TABLE `downloadable_files`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `news`
+--
+ALTER TABLE `news`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `pages_content`
+--
+ALTER TABLE `pages_content`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `rate_limit_attempts`
+--
+ALTER TABLE `rate_limit_attempts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `student_advisors`
+--
+ALTER TABLE `student_advisors`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `downloadable_files`
+--
+ALTER TABLE `downloadable_files`
+  ADD CONSTRAINT `fk_files_admin` FOREIGN KEY (`uploaded_by`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `news`
+--
+ALTER TABLE `news`
+  ADD CONSTRAINT `fk_news_admin` FOREIGN KEY (`created_by`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `pages_content`
+--
+ALTER TABLE `pages_content`
+  ADD CONSTRAINT `fk_pages_admin` FOREIGN KEY (`updated_by`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
