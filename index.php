@@ -10,6 +10,7 @@ require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/controllers/NewsController.php';
 require_once __DIR__ . '/controllers/HomeController.php';
 
+
 $router = new Router();
 
 $authController = new AuthController();
@@ -26,41 +27,50 @@ $router->addRoute('GET', '/test', function () {
 });
 
 $newsController = new NewsController();
-$router->addRoute('POST', '/admin/news', function() use ($newsController) {
+$router->addRoute('GET', '/admin/news', function() use ($newsController) {
     $newsController->listAdmin();
 });
 $router->addRoute('POST', '/admin/news/store', function() use ($newsController) {
     $newsController->store();
 });
-$router->addRoute('POST', '/admin/news/create', function() {
+$router->addRoute('GET', '/admin/news/create', function() {
     require_once __DIR__ . '/views/backend/news-form.php';
 });
 // Rute untuk menampilkan form edit
-$router->addRoute('POST', '/admin/news/edit', function() use ($newsController) {
+$router->addRoute('GET', '/admin/news/edit', function() use ($newsController) {
     $id = $_GET['id'] ?? null;
     $newsController->editForm($id); 
 });
 // Rute untuk memproses update data ke database
-$router->addRoute('POST', '/admin/news/update', function() use ($newsController) {
+$router->addRoute('GET', '/admin/news/update', function() use ($newsController) {
     $newsController->update();
 });
 // Rute untuk memproses penghapusan berita
-$router->addRoute('POST', '/admin/news/delete', function() use ($newsController) {
+$router->addRoute('GET', '/admin/news/delete', function() use ($newsController) {
     $id = $_GET['id'] ?? null;
     $newsController->delete($id);
 });
 
 // Pastikan file controller di-load
-$homeController = new HomeController();
 
+$homeController = new HomeController();
 // Rute Beranda
 $router->addRoute('GET', '/', function() use ($homeController) {
     $homeController->index();
 });
 
 // Rute Detail Berita (menggunakan query string /news?slug=...)
+// Rute Detail Berita
 $router->addRoute('GET', '/news', function() use ($homeController) {
+    // Gunakan null coalescing operator (??) agar tidak error jika tidak ada slug di URL
     $slug = $_GET['slug'] ?? '';
+    
+    // Jika slug kosong, cegah masuk ke controller dan berikan pesan
+    if (empty($slug)) {
+         echo "Silakan pilih berita terlebih dahulu dari halaman Beranda.";
+         return;
+    }
+    
     $homeController->showNews($slug);
 });
 // Rute Detail Halaman Statis (SOP, Profil, dll)

@@ -1,5 +1,7 @@
 <?php require_once __DIR__ . '/../layout/public_header.php'; ?>
-
+<?php 
+/** @var array $news */ 
+?>
 <div class="container my-5">
     <div class="row justify-content-center">
         <!-- Menggunakan col-lg-8 agar konten tidak terlalu melebar dan nyaman dibaca -->
