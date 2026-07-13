@@ -18,6 +18,8 @@ class FileController extends Controller {
      * Menampilkan halaman Manajemen File
      */
     public function listAdmin(): void {
+        $this->requireLogin(); // <-- DITAMBAHKAN: proteksi akses admin
+
         $model = new DownloadableFile();
         $files = $model->getActiveFiles();
 
@@ -33,6 +35,8 @@ class FileController extends Controller {
      * Memproses Unggahan Dokumen dengan Validasi Berlapis
      */
     public function store(): void {
+        $this->requireLogin(); // <-- DITAMBAHKAN: proteksi akses admin
+
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
             die("Error 403: CSRF Violation.");
@@ -83,16 +87,14 @@ class FileController extends Controller {
         // 5. Eksekusi Simpan Fisik & Basis Data
         if (move_uploaded_file($fileTmp, $destination)) {
             try {
-                // Dummy Admin ID, harusnya diambil dari $_SESSION['admin_id'] milik Dev 1
-                $adminId = $_SESSION['admin_id'] ?? 1; 
+                $adminId = $_SESSION['admin_id'] ?? 1;
                 
                 $model = new DownloadableFile();
                 $model->replaceByCategory($category, $originalName, $randomName, $adminId);
 
-                header("Location: /admin/files?status=success");
+                header("Location: " . BASE_URL . "admin/files?status=success"); // <-- DIPERBAIKI: pakai BASE_URL
                 exit;
             } catch (Exception $e) {
-                // Rollback sistem file jika database gagal
                 unlink($destination);
                 die("Error: Gagal menyimpan data ke database.");
             }
@@ -105,6 +107,8 @@ class FileController extends Controller {
      * Menghapus (Soft Delete) file
      */
     public function delete(): void {
+        $this->requireLogin(); // <-- DITAMBAHKAN: proteksi akses admin
+
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
             die("Error 403: CSRF Violation.");
@@ -116,7 +120,7 @@ class FileController extends Controller {
             $model->deactivate($id);
         }
         
-        header("Location: /admin/files?status=deleted");
+        header("Location: " . BASE_URL . "admin/files?status=deleted"); // <-- DIPERBAIKI: pakai BASE_URL
         exit;
     }
 }

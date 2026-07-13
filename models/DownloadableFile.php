@@ -8,15 +8,14 @@ class DownloadableFile {
     private ?PDO $db;
 
     public function __construct() {
-        global $db;
-        $this->db = $db;
+        $this->db = getDbConnection();
     }
 
     /**
      * Mengambil daftar semua file yang sedang aktif
      */
     public function getActiveFiles(): array {
-        $stmt = $this->db->query("SELECT * FROM downloadable_files WHERE is_active = 1 ORDER BY created_at DESC");
+        $stmt = $this->db->query("SELECT * FROM downloadable_files WHERE is_active = 1 ORDER BY uploaded_at DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -28,13 +27,11 @@ class DownloadableFile {
         try {
             $this->db->beginTransaction();
 
-            // 1. Arsipkan file lama di kategori yang sama (Soft Delete)
             $stmtArchive = $this->db->prepare("UPDATE downloadable_files SET is_active = 0 WHERE file_category = :cat AND is_active = 1");
             $stmtArchive->execute([':cat' => $category]);
 
-            // 2. Masukkan record file baru
             $stmtInsert = $this->db->prepare("
-                INSERT INTO downloadable_files (file_category, file_name, file_path, uploaded_by, is_active, created_at) 
+                INSERT INTO downloadable_files (file_category, file_name, file_path, uploaded_by, is_active, uploaded_at) 
                 VALUES (:cat, :name, :path, :admin_id, 1, NOW())
             ");
             $stmtInsert->execute([

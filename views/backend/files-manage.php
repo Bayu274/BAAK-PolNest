@@ -8,7 +8,7 @@
                     <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> Unggah File Baru</h5>
                 </div>
                 <div class="card-body">
-                    <form action="/admin/files/upload" method="POST" enctype="multipart/form-data">
+                    <form action="<?= BASE_URL ?>admin/files/upload" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?php echo e($data['csrf_token']); ?>">
 
                         <div class="mb-3">
@@ -59,15 +59,15 @@
                                 <tr>
                                     <td><span class="badge bg-secondary"><?php echo e(strtoupper(str_replace('_', ' ', $file['file_category']))); ?></span></td>
                                     <td class="fw-bold"><?php echo e($file['file_name']); ?></td>
-                                    <td><?php echo e(date('d M Y H:i', strtotime($file['created_at']))); ?></td>
+                                    <td><?php echo e(date('d M Y H:i', strtotime($file['uploaded_at']))); ?></td>
                                     <td>
                                         <!-- Tombol Download (Akses langsung ke folder fisik) -->
-                                        <a href="/storage/uploads/<?php echo e($file['file_path']); ?>" class="btn btn-sm btn-outline-primary" target="_blank" download>
+                                        <a href="<?= BASE_URL ?>storage/uploads/<?php echo e($file['file_path']); ?>" class="btn btn-sm btn-outline-primary" target="_blank" download>
                                             <i class="bi bi-download"></i>
                                         </a>
-                                        
+
                                         <!-- Form Soft Delete -->
-                                        <form action="/admin/files/delete" method="POST" class="d-inline" onsubmit="return confirm('Hapus file ini?');">
+                                        <form action="<?= BASE_URL ?>admin/files/delete" method="POST" class="d-inline" onsubmit="return confirm('Hapus file ini?');">
                                             <input type="hidden" name="csrf_token" value="<?php echo e($data['csrf_token']); ?>">
                                             <input type="hidden" name="file_id" value="<?php echo e($file['id']); ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
