@@ -25,17 +25,17 @@ $router->addRoute('GET', '/test', function () {
 });
 
 $newsController = new NewsController();
-$router->addRoute('GET', '/admin/news', function() use ($newsController) {
+$router->addRoute('POST', '/admin/news', function() use ($newsController) {
     $newsController->listAdmin();
 });
 $router->addRoute('POST', '/admin/news/store', function() use ($newsController) {
     $newsController->store();
 });
-$router->addRoute('GET', '/admin/news/create', function() {
+$router->addRoute('POST', '/admin/news/create', function() {
     require_once __DIR__ . '/views/backend/news-form.php';
 });
 // Rute untuk menampilkan form edit
-$router->addRoute('GET', '/admin/news/edit', function() use ($newsController) {
+$router->addRoute('POST', '/admin/news/edit', function() use ($newsController) {
     $id = $_GET['id'] ?? null;
     $newsController->editForm($id); 
 });
@@ -44,13 +44,13 @@ $router->addRoute('POST', '/admin/news/update', function() use ($newsController)
     $newsController->update();
 });
 // Rute untuk memproses penghapusan berita
-$router->addRoute('GET', '/admin/news/delete', function() use ($newsController) {
+$router->addRoute('POST', '/admin/news/delete', function() use ($newsController) {
     $id = $_GET['id'] ?? null;
     $newsController->delete($id);
 });
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $requestUri = str_replace('/BAAK-PolNest', '', $requestUri);
 
-$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'POST';
 
 $router->dispatch($requestUri, $requestMethod);
