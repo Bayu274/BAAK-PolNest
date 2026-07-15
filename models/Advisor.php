@@ -8,9 +8,7 @@ class Advisor {
     private ?PDO $db;
 
     public function __construct() {
-        // Mengambil koneksi dari berkas database.php yang diinstansiasi oleh Dev 1
-        global $db; 
-        $this->db = $db;
+    $this->db = getDbConnection();
     }
 
     /**

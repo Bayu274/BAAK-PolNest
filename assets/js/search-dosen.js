@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.textContent = 'Mencari...';
 
         // Lakukan pemanggilan AJAX Fetch API
-        fetch('/api/advisors/search', {
+        fetch(BASE_URL + 'api/advisors/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

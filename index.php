@@ -11,6 +11,8 @@ require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/controllers/NewsController.php';
 require_once __DIR__ . '/controllers/FileController.php';
 require_once __DIR__ . '/controllers/HomeController.php';
+require_once __DIR__ . '/controllers/PageController.php';
+require_once __DIR__ . '/controllers/AdvisorController.php';
 
 $router = new Router();
 
@@ -28,6 +30,7 @@ $router->addRoute('GET', '/test', function () {
 });
 
 $newsController = new NewsController();
+
 $router->addRoute('GET', '/admin/news', function() use ($newsController) {
     $newsController->listAdmin();
 });
@@ -37,10 +40,6 @@ $router->addRoute('GET', '/admin/news/create', function() {
 $router->addRoute('POST', '/admin/news/store', function() use ($newsController) {
     $newsController->store();
 });
-$router->addRoute('GET', '/admin/news/create', function() {
-    require_once __DIR__ . '/views/backend/news-form.php';
-});
-// Rute untuk menampilkan form edit
 $router->addRoute('GET', '/admin/news/edit', function() use ($newsController) {
     $id = $_GET['id'] ?? null;
     $newsController->editForm($id);
@@ -53,34 +52,31 @@ $router->addRoute('POST', '/admin/news/delete', function() use ($newsController)
     $newsController->delete($id);
 });
 
+// Detail berita publik — menggantikan HomeController::showNews() yang sudah dihapus
+$router->addRoute('GET', '/berita/{slug}', [$newsController, 'show']);
+
 $fileController = new FileController();
 
 $router->addRoute('GET', '/admin/files', [$fileController, 'listAdmin']);
 $router->addRoute('POST', '/admin/files/upload', [$fileController, 'store']);
 $router->addRoute('POST', '/admin/files/delete', [$fileController, 'delete']);
 
-$homeController = new HomeController();
-// Rute Beranda
-$router->addRoute('GET', '/', function() use ($homeController) {
-    $homeController->index();
-});
+$pageController = new PageController();
 
-// Rute Detail Berita
-$router->addRoute('GET', '/news', function() use ($homeController) {
-    $slug = $_GET['slug'] ?? '';
-    
-    if (empty($slug)) {
-         echo "Silakan pilih berita terlebih dahulu dari halaman Beranda.";
-         return;
-    }
-    
-    $homeController->showNews($slug);
-});
-// Rute Detail Halaman Statis (SOP, Profil, dll)
-$router->addRoute('GET', '/page', function() use ($homeController) {
-    $identifier = $_GET['id'] ?? '';
-    $homeController->showPage($identifier);
-});
+$router->addRoute('GET', '/admin/pages/edit/{identifier}', [$pageController, 'editForm']);
+$router->addRoute('POST', '/admin/pages/save/{identifier}', [$pageController, 'save']);
+// Halaman SOP publik — menggantikan HomeController::showPage() yang sudah dihapus
+$router->addRoute('GET', '/halaman/{identifier}', [$pageController, 'show']);
+
+$advisorController = new AdvisorController();
+
+$router->addRoute('GET', '/pencarian-dosen', [$advisorController, 'showSearchPage']);
+$router->addRoute('POST', '/api/advisors/search', [$advisorController, 'search']);
+$router->addRoute('GET', '/admin/import-csv', [$advisorController, 'importCsvForm']);
+$router->addRoute('POST', '/admin/import-csv', [$advisorController, 'processImport']);
+
+$homeController = new HomeController();
+$router->addRoute('GET', '/', [$homeController, 'index']);
 
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $requestUri = str_replace('/BAAK-PolNest', '', $requestUri);

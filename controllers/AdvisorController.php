@@ -184,7 +184,7 @@ class AdvisorController extends Controller {
             $model = new Advisor();
             $model->truncateAndReload($rows);
             // Redirect kembali dengan pesan sukses (menggunakan session flash jika ada di base controller Dev 1)
-            header("Location: /admin/import-csv?status=success");
+            header("Location: " . BASE_URL . "admin/import-csv?status=success");
             exit;
         } catch (Exception $e) {
             die($e->getMessage());
