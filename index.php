@@ -34,8 +34,8 @@ $newsController = new NewsController();
 $router->addRoute('GET', '/admin/news', function() use ($newsController) {
     $newsController->listAdmin();
 });
-$router->addRoute('GET', '/admin/news/create', function() {
-    require_once __DIR__ . '/views/backend/news-form.php';
+$router->addRoute('GET', '/admin/news/create', function() use ($newsController) {
+    $newsController->createForm();
 });
 $router->addRoute('POST', '/admin/news/store', function() use ($newsController) {
     $newsController->store();

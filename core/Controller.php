@@ -4,6 +4,11 @@ class Controller
 {
     protected function render(string $view, array $data = []): void
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        generateCsrfToken(); // pastikan token CSRF tersedia sebelum view di-render
+
         extract($data);
         $viewPath = __DIR__ . '/../views/' . $view . '.php';
 
