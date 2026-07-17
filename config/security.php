@@ -60,7 +60,8 @@ if (!function_exists('cleanupOldAttempts')) {
      * Menghapus log rate limit yang sudah usang dari database (Sampah > 1 jam)
      */
     function cleanupOldAttempts(PDO $db): void {
-        $sql = "DELETE FROM rate_limit_attempts WHERE last_attempt < (UNIX_TIMESTAMP() - 3600)";
+        // Menggunakan SQL Native DateTime untuk menyesuaikan tipe kolom timestamp
+        $sql = "DELETE FROM rate_limit_attempts WHERE window_start < (NOW() - INTERVAL 1 HOUR)";
         try {
             $db->exec($sql);
         } catch (PDOException $e) {
@@ -71,37 +72,42 @@ if (!function_exists('cleanupOldAttempts')) {
 
 if (!function_exists('checkRateLimit')) {
     /**
-     * Granular Rate Limiting dengan Stochastic Cleanup
+     * Granular Rate Limiting dengan Stochastic Cleanup (Sesuai Skema Dev 1)
      */
     function checkRateLimit(string $ip, string $endpoint, int $maxAttempts = 10, int $windowSeconds = 60): bool {
-        // Ambil instance PDO global dari database.php (pastikan database.php sudah dimuat)
-        global $db; 
+        // Panggil file database jika fungsi koneksi belum tersedia
+        if (!function_exists('getDbConnection')) {
+            require_once __DIR__ . '/database.php';
+        }
         
-        if (!$db) {
-            error_log("Security config tidak dapat menemukan koneksi database global.");
-            return true; // Fail-open sementara jika koneksi belum ada, agar aplikasi tidak crash total
+        try {
+            // Panggil koneksi sesuai arsitektur Dev 1
+            $db = getDbConnection(); 
+        } catch (Exception $e) {
+            error_log("Security config gagal memanggil koneksi: " . $e->getMessage());
+            return true; // Fail-open sementara
         }
 
         // 1. Stochastic Cleanup (10% Probabilitas eksekusi)
-        // Meniadakan kebutuhan Cron Job, ditarik saat request masuk secara acak
         if (random_int(1, 10) === 1) {
             cleanupOldAttempts($db);
         }
 
-        $currentTime = time();
-        $windowStart = $currentTime - $windowSeconds;
+        // Hitung batas waktu menggunakan format date PHP untuk dicocokkan dengan kolom timestamp MySQL
+        $windowStartStr = date('Y-m-d H:i:s', time() - $windowSeconds);
+        $currentTimeStr = date('Y-m-d H:i:s');
 
         try {
-            // 2. Bersihkan request kadaluarsa KHUSUS untuk IP & endpoint ini agar kalkulasi akurat
-            $stmtClean = $db->prepare("DELETE FROM rate_limit_attempts WHERE ip_address = :ip AND endpoint = :endpoint AND last_attempt < :windowStart");
+            // 2. Bersihkan request kadaluarsa KHUSUS untuk IP & endpoint ini
+            $stmtClean = $db->prepare("DELETE FROM rate_limit_attempts WHERE ip_address = :ip AND endpoint = :endpoint AND window_start < :window_start");
             $stmtClean->execute([
                 ':ip' => $ip,
                 ':endpoint' => $endpoint,
-                ':windowStart' => $windowStart
+                ':window_start' => $windowStartStr
             ]);
 
-            // 3. Hitung jumlah request yang dilakukan IP tersebut ke endpoint ini dalam rentang waktu yang tersisa
-            $stmtCount = $db->prepare("SELECT SUM(attempts) as total_attempts FROM rate_limit_attempts WHERE ip_address = :ip AND endpoint = :endpoint");
+            // 3. Hitung jumlah request
+            $stmtCount = $db->prepare("SELECT SUM(attempt_count) as total_attempts FROM rate_limit_attempts WHERE ip_address = :ip AND endpoint = :endpoint");
             $stmtCount->execute([
                 ':ip' => $ip,
                 ':endpoint' => $endpoint
@@ -112,22 +118,21 @@ if (!function_exists('checkRateLimit')) {
 
             // 4. Periksa limit
             if ($totalAttempts >= $maxAttempts) {
-                return false; // Ditolak, IP mencapai batas maksimal
+                return false; // Ditolak
             }
 
-            // 5. Jika aman, catat attempt baru
-            $stmtInsert = $db->prepare("INSERT INTO rate_limit_attempts (ip_address, endpoint, attempts, last_attempt) VALUES (:ip, :endpoint, 1, :current_time)");
+            // 5. Catat attempt baru sesuai nama kolom skema
+            $stmtInsert = $db->prepare("INSERT INTO rate_limit_attempts (ip_address, endpoint, attempt_count, window_start) VALUES (:ip, :endpoint, 1, :current_time)");
             $stmtInsert->execute([
                 ':ip' => $ip,
                 ':endpoint' => $endpoint,
-                ':current_time' => $currentTime
+                ':current_time' => $currentTimeStr
             ]);
 
-            return true; // Diizinkan
+            return true; 
 
         } catch (PDOException $e) {
             error_log("DB Rate Limit Error: " . $e->getMessage());
-            // Jika tabel belum dibuat, fail-open agar sistem tidak berhenti berfungsi
             return true; 
         }
     }
