@@ -28,4 +28,13 @@ class Page {
             'identifier'   => $identifier
         ]);
     }
+
+    public function getAll() {
+        // Sesuaikan nama tabel 'pages' dengan yang ada di database-mu
+        $query = "SELECT * FROM pages_content ORDER BY id DESC";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

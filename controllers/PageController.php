@@ -26,7 +26,17 @@ class PageController extends Controller {
     // ==========================================
     // AREA ADMIN (BACKEND)
     // ==========================================
-
+    public function listAdmin() {
+        $this->requireLogin();
+        
+        $pageModel = new Page();
+        // Memanggil fungsi getAll() dari model Page
+        $pages = $pageModel->getAll(); 
+        
+        $this->render('backend/pages-list', [
+            'pages' => $pages
+        ]);
+    }
     public function editForm($identifier) {
         $this->requireLogin();
 

@@ -23,7 +23,8 @@ $router->addRoute('POST', '/login', [$authController, 'login']);
 $router->addRoute('GET', '/logout', [$authController, 'logout']);
 
 $dashboardController = new DashboardController();
-$router->addRoute('GET', '/dashboard', [$dashboardController, 'index']);
+// REVISI: Rute dashboard disesuaikan menjadi /admin/dashboard agar sinkron dengan layout
+$router->addRoute('GET', '/admin/dashboard', [$dashboardController, 'index']);
 
 $router->addRoute('GET', '/test', function () {
     echo "Router berhasil jalan!";
@@ -62,6 +63,9 @@ $router->addRoute('POST', '/admin/files/upload', [$fileController, 'store']);
 $router->addRoute('POST', '/admin/files/delete', [$fileController, 'delete']);
 
 $pageController = new PageController();
+
+// REVISI: Menambahkan rute utama untuk menampilkan daftar halaman
+$router->addRoute('GET', '/admin/pages', [$pageController, 'listAdmin']);
 
 $router->addRoute('GET', '/admin/pages/edit/{identifier}', [$pageController, 'editForm']);
 $router->addRoute('POST', '/admin/pages/save/{identifier}', [$pageController, 'save']);
