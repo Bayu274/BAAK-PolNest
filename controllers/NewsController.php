@@ -66,13 +66,15 @@ class NewsController extends Controller {
             die("Akses ditolak: Token CSRF tidak valid!");
         }
 
-        $title = trim($_POST['title'] ?? '');
-        $content = $_POST['content'] ?? '';
+        // Sanitasi XSS menggunakan htmlspecialchars sesuai PRD
+        $title = htmlspecialchars(trim($_POST['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $content = trim($_POST['content'] ?? '');
 
         if (empty($title) || empty($content)) {
             die("Error: Judul dan Konten berita wajib diisi!");
         }
 
+        // Generate slug (akan otomatis mengecek duplikat di DB)
         $slug = $this->generateSlug($title);
 
         $thumbnailPath = null;
@@ -121,14 +123,16 @@ class NewsController extends Controller {
         }
 
         $id = $_POST['id'] ?? null;
-        $title = trim($_POST['title'] ?? '');
-        $content = $_POST['content'] ?? '';
+        // Sanitasi XSS menggunakan htmlspecialchars sesuai PRD
+        $title = htmlspecialchars(trim($_POST['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $content = trim($_POST['content'] ?? '');
 
         if (!$id || empty($title) || empty($content)) {
             die("Error: Data tidak lengkap.");
         }
 
-        $slug = $this->generateSlug($title);
+        // Generate slug dengan pengecekan duplikat (mengabaikan slug milik ID ini sendiri)
+        $slug = $this->generateSlug($title, $id);
 
         $oldNews = $this->newsModel->getById($id);
         $thumbnailPath = $oldNews['thumbnail_image'] ?? null;
@@ -190,9 +194,30 @@ class NewsController extends Controller {
     // HELPER FUNCTIONS (PRIVATE)
     // ==========================================
 
-    private function generateSlug(string $title): string {
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-        return trim($slug, '-');
+    private function generateSlug(string $title, ?int $ignoreId = null): string {
+        // Buat slug dasar dari judul
+        $originalSlug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+        $originalSlug = trim($originalSlug, '-');
+        
+        $slug = $originalSlug;
+        $counter = 1;
+
+        // Loop untuk mengecek duplikat di database
+        while (true) {
+            $existingNews = $this->newsModel->getBySlug($slug);
+            
+            // Jika tidak ada berita dengan slug tersebut, 
+            // ATAU jika ini proses update dan slug tersebut milik berita ini sendiri, maka slug aman digunakan.
+            if (!$existingNews || ($ignoreId !== null && $existingNews['id'] == $ignoreId)) {
+                break;
+            }
+
+            // Jika slug sudah ada, tambahkan angka di belakangnya
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     private function validateUpload($file) {
