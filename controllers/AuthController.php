@@ -52,19 +52,6 @@ class AuthController extends Controller
         $this->render('frontend/login', ['error' => 'Username atau password salah']);
     }
 
-        $adminModel = new Admin();
-        $admin = $adminModel->findByUsername($username);
-
-        if ($admin && password_verify($password, $admin['password'])) {
-            session_regenerate_id(true);
-            $_SESSION['admin_id'] = $admin['id'];
-            header('Location: /BAAK-PolNest/dashboard');
-            exit;
-        }
-
-        $this->render('frontend/login', ['error' => 'Username atau password salah']);
-    }
-
     public function logout(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
