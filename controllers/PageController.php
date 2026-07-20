@@ -48,20 +48,28 @@ class PageController extends Controller {
             die("Akses ditolak: Token CSRF tidak valid!");
         }
 
+        $pageModel = new Page();
+
+        // Cek dulu apakah identifier ini benar-benar ada di database,
+        // supaya kita bisa membedakan "identifier tidak ditemukan" (gagal sungguhan)
+        // dari "tidak ada perubahan konten" (bukan kegagalan).
+        $existingPage = $pageModel->getByIdentifier($identifier);
+        if (!$existingPage) {
+            die("Error: Halaman dengan identifier \"" . htmlspecialchars($identifier) . "\" tidak ditemukan di database.");
+        }
+
         $htmlContent = sanitizeHtmlContent($_POST['html_content'] ?? '');
         $adminId = $_SESSION['admin_id'] ?? null;
 
         // Konten dari Rich Text Editor sekarang disaring lewat HTML Purifier
         // (lihat sanitizeHtmlContent() di config/security.php) sebelum disimpan.
 
-        $pageModel = new Page();
-        $success = $pageModel->updateContent($identifier, $htmlContent, $adminId);
+        // updateContent() bisa return false kalau tidak ada baris yang benar-benar berubah
+        // (misal konten yang disubmit identik dengan yang sudah tersimpan) —
+        // itu BUKAN kegagalan, karena identifier-nya sudah kita pastikan ada di atas.
+        $pageModel->updateContent($identifier, $htmlContent, $adminId);
 
-        if ($success) {
-            header("Location: " . BASE_URL . "admin/pages/edit/" . $identifier . "?status=success");
-            exit;
-        } else {
-            die("Gagal menyimpan perubahan konten halaman.");
-        }
+        header("Location: " . BASE_URL . "admin/pages/edit/" . $identifier . "?status=success");
+        exit;
     }
 }
