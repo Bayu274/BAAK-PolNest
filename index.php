@@ -25,10 +25,6 @@ $router->addRoute('GET', '/logout', [$authController, 'logout']);
 $dashboardController = new DashboardController();
 $router->addRoute('GET', '/dashboard', [$dashboardController, 'index']);
 
-$router->addRoute('GET', '/test', function () {
-    echo "Router berhasil jalan!";
-});
-
 $newsController = new NewsController();
 
 $router->addRoute('GET', '/admin/news', function() use ($newsController) {
