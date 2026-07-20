@@ -1,0 +1,16 @@
+﻿# File backup manual (dibuat sebelum edit berisiko, bukan bagian dari source code)
+*.backup
+
+# Hasil upload testing — jangan ikut ke-commit, tapi folder tetap ada
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# File environment lokal (kalau nanti ada konfigurasi sensitif per developer)
+.env
+
+# File sistem OS
+Thumbs.db
+.DS_Store
+
+# Folder cache HTML Purifier (kalau suatu saat dipindah dari temp dir ke dalam project)
+libs/htmlpurifier-*/cache/
