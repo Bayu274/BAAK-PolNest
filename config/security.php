@@ -146,3 +146,25 @@ if (!function_exists('e')) {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
+if (!function_exists('sanitizeHtmlContent')) {
+    /**
+     * Membersihkan HTML dari rich text editor (CKEditor/TinyMCE) sebelum disimpan ke database.
+     * Mencegah XSS dari konten yang disimpan sebagai HTML mentah.
+     */
+    function sanitizeHtmlContent(string $dirty): string {
+        static $purifier = null;
+
+        if ($purifier === null) {
+            require_once __DIR__ . '/../libs/htmlpurifier-4.15.0-standalone/HTMLPurifier.standalone.php';
+
+            $config = HTMLPurifier_Config::createDefault();
+            $config->set('HTML.Allowed', 'p,br,b,strong,i,em,u,ul,ol,li,a[href],h1,h2,h3,h4,blockquote,table,thead,tbody,tr,td,th');
+            $config->set('AutoFormat.RemoveEmpty', true);
+            $config->set('Cache.SerializerPath', sys_get_temp_dir());
+
+            $purifier = new HTMLPurifier($config);
+        }
+
+        return $purifier->purify($dirty);
+    }
+}

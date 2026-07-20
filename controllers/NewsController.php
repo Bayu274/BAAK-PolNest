@@ -67,7 +67,7 @@ class NewsController extends Controller {
         }
 
         $title = trim($_POST['title'] ?? '');
-        $content = $_POST['content'] ?? '';
+        $content = sanitizeHtmlContent($_POST['content'] ?? '');
 
         if (empty($title) || empty($content)) {
             die("Error: Judul dan Konten berita wajib diisi!");
@@ -122,7 +122,7 @@ class NewsController extends Controller {
 
         $id = $_POST['id'] ?? null;
         $title = trim($_POST['title'] ?? '');
-        $content = $_POST['content'] ?? '';
+        $content = sanitizeHtmlContent($_POST['content'] ?? '');
 
         if (!$id || empty($title) || empty($content)) {
             die("Error: Data tidak lengkap.");

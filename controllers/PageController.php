@@ -48,12 +48,11 @@ class PageController extends Controller {
             die("Akses ditolak: Token CSRF tidak valid!");
         }
 
-        $htmlContent = $_POST['html_content'] ?? '';
+        $htmlContent = sanitizeHtmlContent($_POST['html_content'] ?? '');
         $adminId = $_SESSION['admin_id'] ?? null;
 
-        // PERHATIAN: konten dari Rich Text Editor sengaja TIDAK di-htmlspecialchars()
-        // supaya struktur HTML (bold, list, tabel) tidak rusak saat dirender ulang.
-        // Masih titik terbuka yang perlu dibahas tim — lihat catatan sanitasi HTML.
+        // Konten dari Rich Text Editor sekarang disaring lewat HTML Purifier
+        // (lihat sanitizeHtmlContent() di config/security.php) sebelum disimpan.
 
         $pageModel = new Page();
         $success = $pageModel->updateContent($identifier, $htmlContent, $adminId);
