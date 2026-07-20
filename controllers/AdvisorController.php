@@ -91,6 +91,8 @@ class AdvisorController extends Controller {
      * Menampilkan antarmuka Halaman Impor CSV di Backend
      */
     public function importCsvForm(): void {
+        $this->requireLogin();
+
         // Asumsi base Controller Dev 1 memiliki render khusus untuk backend (layout)
         $this->render('backend/advisor-import', [
             'page_title' => 'Impor Data Dosen Pembimbing',
@@ -103,6 +105,8 @@ class AdvisorController extends Controller {
      * Memproses file CSV yang diunggah Admin (Validasi Fail-Fast)
      */
     public function processImport(): void {
+        $this->requireLogin();
+
         // 1. Validasi CSRF Token
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
