@@ -45,7 +45,7 @@ class AuthController extends Controller
         if ($admin && password_verify($password, $admin['password'])) {
             session_regenerate_id(true);
             $_SESSION['admin_id'] = $admin['id'];
-            header('Location: /BAAK-PolNest/dashboard');
+            header('Location: ' . BASE_URL . 'dashboard');
             exit;
         }
 
@@ -58,7 +58,7 @@ class AuthController extends Controller
             session_start();
         }
         session_destroy();
-        header('Location: /BAAK-PolNest/login');
+        header('Location: ' . BASE_URL . 'login');
         exit;
     }
 }

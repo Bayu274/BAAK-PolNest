@@ -13,7 +13,12 @@ class Controller
         $viewPath = __DIR__ . '/../views/' . $view . '.php';
 
         if (!file_exists($viewPath)) {
-            die("View tidak ditemukan: {$view}");
+            logError("View not found: {$view}");
+            if (getenv('APP_ENV') === 'production') {
+                die('Terjadi kesalahan sistem. Silakan coba lagi nanti.');
+            } else {
+                die("View tidak ditemukan: {$view}");
+            }
         }
 
         if ($useLayout) {
@@ -37,7 +42,7 @@ class Controller
         }
 
         if (empty($_SESSION['admin_id'])) {
-            header('Location: /BAAK-PolNest/login');
+            header('Location: ' . BASE_URL . 'login');
             exit;
         }
     }

@@ -9,4 +9,5 @@ $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $scriptDir = rtrim($scriptDir, '/');
 
 define('BASE_URL', $protocol . $host . $scriptDir . '/');
-define('APP_ENV', 'development');
+define('BASE_PATH', $scriptDir);
+define('APP_ENV', getenv('APP_ENV') ?: 'development');

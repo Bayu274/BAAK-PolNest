@@ -39,7 +39,7 @@ CREATE TABLE `admin_users` (
 --
 
 INSERT INTO `admin_users` (`id`, `username`, `password`, `created_at`) VALUES
-(1, 'admin', 'admin123', '2026-07-10 07:39:41');
+(1, 'admin', '$2b$10$tqQsy3IR0XwBQR2qoqNiAu4uCR5s/0uzOZo/p.8hlfJc44ttMkkSm', '2026-07-10 07:39:41');
 
 -- --------------------------------------------------------
 

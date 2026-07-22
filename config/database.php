@@ -21,7 +21,12 @@ function getDbConnection(): PDO
         try {
             $pdo = new PDO($dsn, $username, $password, $options);
         } catch (PDOException $e) {
-            die('Koneksi database gagal: ' . $e->getMessage());
+            logError("Database connection failed: " . $e->getMessage());
+            if (getenv('APP_ENV') === 'production') {
+                die('Terjadi kesalahan sistem. Silakan coba lagi nanti.');
+            } else {
+                die('Koneksi database gagal: ' . $e->getMessage());
+            }
         }
     }
 

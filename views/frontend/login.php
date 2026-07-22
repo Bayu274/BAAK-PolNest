@@ -17,7 +17,7 @@
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="/BAAK-PolNest/login">
+                <form method="POST" action="<?= BASE_URL ?>login">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
