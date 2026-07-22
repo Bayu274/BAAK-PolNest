@@ -1,7 +1,7 @@
 <main class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Edit Konten Halaman: <span class="fw-light"><?= htmlspecialchars($identifier) ?></span></h2>
-        <a href="<?= BASE_URL ?>admin/dashboard" class="btn btn-secondary">
+        <a href="<?= BASE_URL ?>dashboard" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
         </a>
     </div>

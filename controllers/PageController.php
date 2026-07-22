@@ -37,7 +37,7 @@ class PageController extends Controller {
             'page' => $page,
             'identifier' => $identifier,
             'csrf_token' => generateCsrfToken()
-        ]);
+        ], true); 
     }
 
     public function save($identifier) {

@@ -2,18 +2,29 @@
 
 class Controller
 {
-    protected function render(string $view, array $data = []): void
+    protected function render(string $view, array $data = [], bool $useLayout = false): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        generateCsrfToken(); // pastikan token CSRF tersedia sebelum view di-render
+        generateCsrfToken();
 
         extract($data);
         $viewPath = __DIR__ . '/../views/' . $view . '.php';
 
         if (!file_exists($viewPath)) {
             die("View tidak ditemukan: {$view}");
+        }
+
+        if ($useLayout) {
+            // Render view ke buffer dulu, hasilnya jadi $content untuk layout
+            ob_start();
+            require $viewPath;
+            $content = ob_get_clean();
+
+            $layoutPath = __DIR__ . '/../views/backend/layout.php';
+            require $layoutPath;
+            return;
         }
 
         require $viewPath;

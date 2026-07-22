@@ -28,7 +28,7 @@ class FileController extends Controller {
             'csrf_token' => generateCsrfToken(),
             'files' => $files,
             'categories' => self::FILE_CATEGORIES
-        ]);
+        ], true);
     }
 
     /**

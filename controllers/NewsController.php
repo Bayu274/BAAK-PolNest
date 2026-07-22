@@ -50,13 +50,13 @@ class NewsController extends Controller {
 
         $news = $this->newsModel->getAll();
 
-        $this->render('backend/news-list', ['news' => $news]);
+        $this->render('backend/news-list', ['news' => $news], true);
     }
 
     public function createForm() {
         $this->requireLogin();
 
-        $this->render('backend/news-form');
+        $this->render('backend/news-form', [], true);
     }
 
     public function store() {
@@ -110,7 +110,7 @@ class NewsController extends Controller {
             die("Berita tidak ditemukan.");
         }
 
-        $this->render('backend/news-form', ['news' => $news, 'isEdit' => true]);
+        $this->render('backend/news-form', ['news' => $news, 'isEdit' => true], true);
     }
 
     public function update() {

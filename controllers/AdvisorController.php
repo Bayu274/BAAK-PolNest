@@ -96,9 +96,8 @@ class AdvisorController extends Controller {
         // Asumsi base Controller Dev 1 memiliki render khusus untuk backend (layout)
         $this->render('backend/advisor-import', [
             'page_title' => 'Impor Data Dosen Pembimbing',
-            // Panggil token CSRF dari security.php (wajib)
             'csrf_token' => generateCsrfToken()
-        ]);
+        ], true);
     }
 
     /**
