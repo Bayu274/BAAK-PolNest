@@ -60,6 +60,6 @@
 </div>
 
 <script>
-    const BASE_URL = '<?= BASE_URL ?>';
+    const BASE_URL = '<?= BASE_URL ?>'; 
 </script>
 <script src="<?= BASE_URL ?>assets/js/search-dosen.js"></script>
