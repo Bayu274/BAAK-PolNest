@@ -9,13 +9,13 @@
                 </div>
                 <div class="card-body">
                     <form action="<?= BASE_URL ?>admin/files/upload" method="POST" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="<?php echo e($data['csrf_token']); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo e($csrf_token); ?>">
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Kategori Dokumen</label>
                             <select name="file_category" class="form-select" required>
                                 <option value="">-- Pilih Kategori --</option>
-                                <?php foreach ($data['categories'] as $cat): ?>
+                                <?php foreach ($categories as $cat): ?>
                                     <option value="<?php echo e($cat); ?>"><?php echo e(ucwords(str_replace('_', ' ', $cat))); ?></option>
                                 <?php endforeach; ?>
                             </select>
@@ -50,12 +50,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (empty($data['files'])): ?>
+                            <?php if (empty($files)): ?>
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">Belum ada dokumen yang diunggah.</td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($data['files'] as $file): ?>
+                                <?php foreach ($files as $file): ?>
                                 <tr>
                                     <td><span class="badge bg-secondary"><?php echo e(strtoupper(str_replace('_', ' ', $file['file_category']))); ?></span></td>
                                     <td class="fw-bold"><?php echo e($file['file_name']); ?></td>
@@ -68,7 +68,7 @@
 
                                         <!-- Form Soft Delete -->
                                         <form action="<?= BASE_URL ?>admin/files/delete" method="POST" class="d-inline" onsubmit="return confirm('Hapus file ini?');">
-                                            <input type="hidden" name="csrf_token" value="<?php echo e($data['csrf_token']); ?>">
+                                            <input type="hidden" name="csrf_token" value="<?php echo e($csrf_token); ?>">
                                             <input type="hidden" name="file_id" value="<?php echo e($file['id']); ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-trash"></i>

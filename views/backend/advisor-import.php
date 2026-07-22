@@ -18,7 +18,7 @@
 
             <form action="<?= BASE_URL ?>admin/import-csv" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Apakah Anda yakin ingin menimpa seluruh data database dengan file CSV ini?');">
                 
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($data['csrf_token'] ?? ''); ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token ?? ''); ?>">
 
                 <div class="mb-4">
                     <label for="csv_file" class="form-label fw-bold">Pilih File (.csv)</label>
