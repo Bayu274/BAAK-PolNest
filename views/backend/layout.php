@@ -11,11 +11,12 @@
             <h5 class="mb-4">BAAK Admin</h5>
             <ul class="nav flex-column">
                 <li class="nav-item mb-2"><a href="<?= BASE_URL ?>dashboard" class="nav-link text-white">Dashboard</a></li>
-                    <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/news" class="nav-link text-white">Berita</a></li>
-                    <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/pages/edit/sop-cuti" class="nav-link text-white">Konten Halaman</a></li>
-                    <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/files" class="nav-link text-white">Berkas Unduhan</a></li>
-                    <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/import-csv" class="nav-link text-white">Data Pembimbing</a></li>
-                    <li class="nav-item mt-4"><a href="<?= BASE_URL ?>logout" class="nav-link text-warning">Logout</a></li>
+                <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/news" class="nav-link text-white">Berita</a></li>
+                <!-- Link di bawah ini sudah disesuaikan ke daftar halaman -->
+                <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/pages" class="nav-link text-white">Konten Halaman</a></li>
+                <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/files" class="nav-link text-white">Berkas Unduhan</a></li>
+                <li class="nav-item mb-2"><a href="<?= BASE_URL ?>admin/import-csv" class="nav-link text-white">Data Pembimbing</a></li>
+                <li class="nav-item mt-4"><a href="<?= BASE_URL ?>logout" class="nav-link text-warning">Logout</a></li>
             </ul>
         </nav>
         <main class="flex-grow-1 p-4">
