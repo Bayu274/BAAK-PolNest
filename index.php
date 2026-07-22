@@ -58,7 +58,11 @@ $router->addRoute('POST', '/admin/files/upload', [$fileController, 'store']);
 $router->addRoute('POST', '/admin/files/delete', [$fileController, 'delete']);
 
 $pageController = new PageController();
-
+$router->addRoute('GET', '/admin/pages', [$pageController, 'listAdmin']);
+// Tambahkan 3 rute ini di bawah rute GET /admin/pages
+$router->addRoute('GET', '/admin/pages/create', [$pageController, 'createForm']);
+$router->addRoute('POST', '/admin/pages/store', [$pageController, 'store']);
+$router->addRoute('POST', '/admin/pages/delete', [$pageController, 'delete']);
 $router->addRoute('GET', '/admin/pages/edit/{identifier}', [$pageController, 'editForm']);
 $router->addRoute('POST', '/admin/pages/save/{identifier}', [$pageController, 'save']);
 // Halaman SOP publik — menggantikan HomeController::showPage() yang sudah dihapus

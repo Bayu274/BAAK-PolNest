@@ -1,8 +1,9 @@
 <main class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Edit Konten Halaman: <span class="fw-light"><?= htmlspecialchars($identifier) ?></span></h2>
-        <a href="<?= BASE_URL ?>dashboard" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+        <!-- Memperbaiki URL kembali agar dinamis ke menu pages atau dashboard admin -->
+        <a href="<?= BASE_URL ?>admin/pages" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Kembali ke Daftar Halaman
         </a>
     </div>
 
@@ -45,13 +46,20 @@
     </div>
 </main>
 
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<!-- Implementasi CKEditor 5 Classic -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<style>
+    /* Mengatur tinggi minimum area ketik agar seimbang dengan kebutuhan halaman panjang */
+    .ck-editor__editable_inline {
+        min-height: 400px;
+    }
+</style>
 <script>
-    tinymce.init({
-        selector: '.rich-text-editor',
-        menubar: false,
-        plugins: 'lists link table',
-        toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link',
-        height: 400
-    });
+    ClassicEditor
+        .create(document.querySelector('#html_content'), {
+            toolbar: [ 'undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'insertTable', 'blockQuote' ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
 </script>

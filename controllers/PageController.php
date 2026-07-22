@@ -26,6 +26,85 @@ class PageController extends Controller {
     // ==========================================
     // AREA ADMIN (BACKEND)
     // ==========================================
+// ==========================================
+    // AREA ADMIN (BACKEND)
+    // ==========================================
+
+    public function listAdmin() {
+        $this->requireLogin();
+        $pageModel = new Page();
+        $pages = $pageModel->getAll(); 
+
+        $this->render('backend/pages-list', [
+            'pages' => $pages,
+            'csrf_token' => generateCsrfToken() // Tambahan token untuk tombol hapus
+        ], true);
+    }
+
+    // METHOD BARU: Menampilkan form tambah halaman
+    public function createForm() {
+        $this->requireLogin();
+        $this->render('backend/pages-create', [
+            'csrf_token' => generateCsrfToken()
+        ], true);
+    }
+
+    // METHOD BARU: Menyimpan halaman baru ke database
+    public function store() {
+        $this->requireLogin();
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            die("Akses ditolak: Token CSRF tidak valid!");
+        }
+
+        $identifier = trim($_POST['identifier'] ?? '');
+        $title = trim($_POST['title'] ?? '');
+        
+        if (empty($identifier)) {
+            die("Error: Identifier tidak boleh kosong.");
+        }
+        
+        // Memastikan identifier bersih (hanya huruf kecil dan strip)
+        $identifier = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $identifier));
+        $identifier = trim($identifier, '-');
+
+        $htmlContent = sanitizeHtmlContent($_POST['html_content'] ?? '');
+        $adminId = $_SESSION['admin_id'] ?? null;
+
+        $pageModel = new Page();
+        
+        // Mencegah duplikasi identifier
+        if ($pageModel->getByIdentifier($identifier)) {
+            die("Error: Identifier sudah digunakan. Silakan gunakan yang lain.");
+        }
+
+        $pageModel->create($identifier, $title, $htmlContent, $adminId);
+
+        header("Location: " . BASE_URL . "admin/pages?status=created");
+        exit;
+    }
+
+    // METHOD BARU: Menghapus halaman
+    public function delete() {
+        $this->requireLogin();
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            die("Akses ditolak: Token CSRF tidak valid!");
+        }
+
+        $identifier = $_POST['identifier'] ?? '';
+        if (empty($identifier)) {
+            die("Error: Identifier tidak valid.");
+        }
+
+        $pageModel = new Page();
+        $pageModel->delete($identifier);
+
+        header("Location: " . BASE_URL . "admin/pages?status=deleted");
+        exit;
+    }
 
     public function editForm($identifier) {
         $this->requireLogin();

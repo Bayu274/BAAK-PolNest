@@ -12,7 +12,8 @@
         <div class="card-body p-4">
             <form action="<?= BASE_URL ?>admin/news/<?= isset($news) ? 'update' : 'store' ?>" method="POST" enctype="multipart/form-data">
 
-                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <!-- Menggunakan $csrf_token sesuai arahan Dev 1 -->
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
                 <?php if (isset($news)): ?>
                     <input type="hidden" name="id" value="<?= (int)$news['id'] ?>">
                 <?php endif; ?>
@@ -56,12 +57,20 @@
     </div>
 </main>
 
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<!-- Implementasi CKEditor 5 Classic -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<style>
+    /* Mengatur tinggi minimum area ketik agar lebih nyaman */
+    .ck-editor__editable_inline {
+        min-height: 300px;
+    }
+</style>
 <script>
-    tinymce.init({
-        selector: '.rich-text-editor',
-        menubar: false,
-        plugins: 'lists link image',
-        toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | bullist numlist outdent indent | link'
-    });
+    ClassicEditor
+        .create(document.querySelector('#content'), {
+            toolbar: [ 'undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote' ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
 </script>
