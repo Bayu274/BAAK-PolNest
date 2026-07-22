@@ -22,7 +22,7 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0">
                         <?php if (!empty($item['thumbnail_image'])): ?>
-                            <img src="<?= BASE_URL ?>storage/uploads/<?= htmlspecialchars($item['thumbnail_image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($item['title']) ?>" style="height: 200px; object-fit: cover;">
+                            <img src="<?= BASE_URL . ltrim(htmlspecialchars($item['thumbnail_image']), '/') ?>" class="card-img-top" ...>
                         <?php else: ?>
                             <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 200px;">
                                 <i class="bi bi-newspaper fs-1"></i>

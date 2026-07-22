@@ -14,7 +14,7 @@
             </div>
 
             <?php if (!empty($news['thumbnail_image'])): ?>
-                <img src="<?= BASE_URL ?>storage/uploads/<?= htmlspecialchars($news['thumbnail_image']) ?>" class="img-fluid rounded shadow-sm mb-4 w-100" alt="<?= htmlspecialchars($news['title']) ?>" style="max-height: 450px; object-fit: cover;">
+                <img src="<?= BASE_URL . ltrim(htmlspecialchars($news['thumbnail_image']), '/') ?>" ...>
             <?php endif; ?>
 
             <div class="news-content fs-5" style="line-height: 1.8;">
