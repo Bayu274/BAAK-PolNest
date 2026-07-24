@@ -13,7 +13,7 @@
             <form action="<?= BASE_URL ?>admin/news/<?= isset($news) ? 'update' : 'store' ?>" method="POST" enctype="multipart/form-data">
 
                 <!-- Menggunakan $csrf_token sesuai arahan Dev 1 -->
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
+                <input type="hidden" name="csrf_token" value="<?= e($csrf_token ?? '') ?>">
                 <?php if (isset($news)): ?>
                     <input type="hidden" name="id" value="<?= (int)$news['id'] ?>">
                 <?php endif; ?>
@@ -21,7 +21,7 @@
                 <div class="mb-3">
                     <label for="title" class="form-label fw-bold">Judul Berita</label>
                     <input type="text" class="form-control" id="title" name="title"
-                           value="<?= isset($news) ? htmlspecialchars($news['title']) : '' ?>"
+                           value="<?= isset($news) ? e($news['title']) : '' ?>"
                            placeholder="Masukkan judul berita..." required>
                 </div>
 
@@ -34,7 +34,7 @@
                     <?php if (isset($news) && !empty($news['thumbnail_image'])): ?>
                         <div class="mt-2">
                             <small class="text-muted">Gambar saat ini:</small><br>
-                            <img src="<?= BASE_URL . ltrim(htmlspecialchars($news['thumbnail_image']), '/') ?>"
+                            <img src="<?= BASE_URL . ltrim(e($news['thumbnail_image']), '/') ?>"
                                  alt="Thumbnail" class="img-thumbnail mt-2" style="max-height: 150px; object-fit: cover;">
                         </div>
                     <?php endif; ?>
@@ -43,12 +43,12 @@
                 <div class="mb-4">
                     <label for="content" class="form-label fw-bold">Isi Konten</label>
                     <textarea class="form-control rich-text-editor" id="content" name="content" rows="10"
-                              placeholder="Tulis isi berita di sini..."><?= isset($news) ? htmlspecialchars($news['content']) : '' ?></textarea>
+                              placeholder="Tulis isi berita di sini..."><?= isset($news) ? e($news['content']) : '' ?></textarea>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
                     <a href="<?= BASE_URL ?>admin/news" class="btn btn-secondary">Batal</a>
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success btn-submit">
                         <i class="bi bi-save"></i> <?= isset($news) ? 'Update Berita' : 'Simpan & Publikasikan' ?>
                     </button>
                 </div>
@@ -65,7 +65,7 @@
         min-height: 300px;
     }
 </style>
-<script>
+<script nonce="<?= generateCspNonce() ?>">
     ClassicEditor
         .create(document.querySelector('#content'), {
             toolbar: [ 'undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote' ]

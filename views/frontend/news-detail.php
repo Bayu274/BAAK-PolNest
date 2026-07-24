@@ -14,11 +14,21 @@
             </div>
 
             <?php if (!empty($news['thumbnail_image'])): ?>
-                <img src="<?= BASE_URL . ltrim(htmlspecialchars($news['thumbnail_image']), '/') ?>" ...>
+                <img src="<?= BASE_URL . ltrim(e($news['thumbnail_image']), '/') ?>" alt="<?= e($news['title']) ?>" class="img-fluid rounded mb-4" style="max-height: 400px; object-fit: cover;">
             <?php endif; ?>
 
             <div class="news-content fs-5" style="line-height: 1.8;">
-                <?= $news['content'] ?>
+                <?php
+                // Raw HTML output — intentional untuk konten CKEditor (rich text).
+                // Konten sudah disanitasi oleh HTMLPurifier saat save di controller.
+                // Defense-in-depth: sanitasi lagi saat render sebagai lapisan keamanan kedua.
+                if (function_exists('sanitizeHtmlContent')) {
+                    echo sanitizeHtmlContent($news['content'] ?? '');
+                } else {
+                    logWarning("HTMLPurifier not loaded — outputting news content with htmlspecialchars fallback.");
+                    echo htmlspecialchars($news['content'] ?? '', ENT_QUOTES, 'UTF-8');
+                }
+                ?>
             </div>
 
             <hr class="mt-5 mb-4">

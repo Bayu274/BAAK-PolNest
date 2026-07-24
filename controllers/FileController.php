@@ -129,6 +129,8 @@ class FileController extends Controller {
 
             regenerateCsrfToken();
             logInfo("File deactivated: id={$id} (admin_id: {$_SESSION['admin_id']})");
+
+            $this->cleanupOrphanedFiles();
         }
         
         header("Location: " . BASE_URL . "admin/files?status=deleted");

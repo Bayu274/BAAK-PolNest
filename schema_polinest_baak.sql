@@ -83,6 +83,7 @@ CREATE TABLE `news` (
 CREATE TABLE `pages_content` (
   `id` int(11) NOT NULL,
   `page_identifier` varchar(100) NOT NULL,
+  `title` varchar(255) NOT NULL DEFAULT '',
   `html_content` longtext DEFAULT NULL,
   `updated_by` int(11) DEFAULT NULL,
   `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -92,8 +93,8 @@ CREATE TABLE `pages_content` (
 -- Dumping data for table `pages_content`
 --
 
-INSERT INTO `pages_content` (`id`, `page_identifier`, `html_content`, `updated_by`, `last_updated`) VALUES
-(1, 'sop-cuti', '<p>TES FITUR&nbsp;</p>\r\n', NULL, '2026-07-10 05:57:37');
+INSERT INTO `pages_content` (`id`, `page_identifier`, `title`, `html_content`, `updated_by`, `last_updated`) VALUES
+(1, 'sop-cuti', 'SOP Cuti Akademik', '<p>TES FITUR&nbsp;</p>\r\n', NULL, '2026-07-10 05:57:37');
 
 -- --------------------------------------------------------
 

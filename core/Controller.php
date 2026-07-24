@@ -9,7 +9,7 @@ class Controller
         }
         generateCsrfToken();
 
-        extract($data);
+        extract($data, EXTR_SKIP);
         $viewPath = __DIR__ . '/../views/' . $view . '.php';
 
         if (!file_exists($viewPath)) {

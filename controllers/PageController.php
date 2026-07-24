@@ -9,6 +9,16 @@ require_once __DIR__ . '/../models/Page.php';
 class PageController extends Controller {
 
     // ==========================================
+    // HELPER: Flash message + redirect
+    // ==========================================
+
+    private function pageError(string $message, string $redirect): void {
+        $_SESSION['import_error'] = $message;
+        header("Location: " . BASE_URL . $redirect);
+        exit;
+    }
+
+    // ==========================================
     // AREA PUBLIK (FRONTEND)
     // ==========================================
 
@@ -17,7 +27,11 @@ class PageController extends Controller {
         $page = $pageModel->getByIdentifier($identifier);
 
         if (!$page) {
-            die("Halaman tidak ditemukan.");
+            http_response_code(404);
+            $this->render('frontend/page-detail', [
+                'page' => ['title' => 'Tidak Ditemukan', 'page_identifier' => $identifier, 'html_content' => '<p>Halaman yang Anda cari tidak ditemukan.</p>']
+            ]);
+            return;
         }
 
         $this->render('frontend/page-detail', ['page' => $page]);
@@ -26,22 +40,18 @@ class PageController extends Controller {
     // ==========================================
     // AREA ADMIN (BACKEND)
     // ==========================================
-// ==========================================
-    // AREA ADMIN (BACKEND)
-    // ==========================================
 
     public function listAdmin() {
         $this->requireLogin();
         $pageModel = new Page();
-        $pages = $pageModel->getAll(); 
+        $pages = $pageModel->getAll();
 
         $this->render('backend/pages-list', [
             'pages' => $pages,
-            'csrf_token' => generateCsrfToken() // Tambahan token untuk tombol hapus
+            'csrf_token' => generateCsrfToken()
         ], true);
     }
 
-    // METHOD BARU: Menampilkan form tambah halaman
     public function createForm() {
         $this->requireLogin();
         $this->render('backend/pages-create', [
@@ -49,23 +59,22 @@ class PageController extends Controller {
         ], true);
     }
 
-    // METHOD BARU: Menyimpan halaman baru ke database
     public function store() {
         $this->requireLogin();
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+            regenerateCsrfToken();
+            $this->pageError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/pages/create');
         }
 
         $identifier = trim($_POST['identifier'] ?? '');
         $title = trim($_POST['title'] ?? '');
-        
+
         if (empty($identifier)) {
-            die("Error: Identifier tidak boleh kosong.");
+            $this->pageError('Identifier tidak boleh kosong.', 'admin/pages/create');
         }
-        
-        // Memastikan identifier bersih (hanya huruf kecil dan strip)
+
         $identifier = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $identifier));
         $identifier = trim($identifier, '-');
 
@@ -73,34 +82,40 @@ class PageController extends Controller {
         $adminId = $_SESSION['admin_id'] ?? null;
 
         $pageModel = new Page();
-        
-        // Mencegah duplikasi identifier
+
         if ($pageModel->getByIdentifier($identifier)) {
-            die("Error: Identifier sudah digunakan. Silakan gunakan yang lain.");
+            regenerateCsrfToken();
+            $this->pageError('Identifier sudah digunakan. Silakan gunakan yang lain.', 'admin/pages/create');
         }
 
         $pageModel->create($identifier, $title, $htmlContent, $adminId);
+
+        regenerateCsrfToken();
+        logInfo("Page created: identifier={$identifier}, title={$title} (admin_id: {$adminId})");
 
         header("Location: " . BASE_URL . "admin/pages?status=created");
         exit;
     }
 
-    // METHOD BARU: Menghapus halaman
     public function delete() {
         $this->requireLogin();
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+            regenerateCsrfToken();
+            $this->pageError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/pages');
         }
 
         $identifier = $_POST['identifier'] ?? '';
         if (empty($identifier)) {
-            die("Error: Identifier tidak valid.");
+            $this->pageError('Identifier tidak valid.', 'admin/pages');
         }
 
         $pageModel = new Page();
         $pageModel->delete($identifier);
+
+        regenerateCsrfToken();
+        logInfo("Page deleted: identifier={$identifier} (admin_id: {$_SESSION['admin_id']})");
 
         header("Location: " . BASE_URL . "admin/pages?status=deleted");
         exit;
@@ -112,11 +127,15 @@ class PageController extends Controller {
         $pageModel = new Page();
         $page = $pageModel->getByIdentifier($identifier);
 
+        if (!$page) {
+            $this->pageError('Halaman dengan identifier "' . htmlspecialchars($identifier) . '" tidak ditemukan.', 'admin/pages');
+        }
+
         $this->render('backend/pages-edit', [
             'page' => $page,
             'identifier' => $identifier,
             'csrf_token' => generateCsrfToken()
-        ], true); 
+        ], true);
     }
 
     public function save($identifier) {
@@ -124,31 +143,27 @@ class PageController extends Controller {
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+            regenerateCsrfToken();
+            $this->pageError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/pages/edit/' . $identifier);
         }
 
         $pageModel = new Page();
 
-        // Cek dulu apakah identifier ini benar-benar ada di database,
-        // supaya kita bisa membedakan "identifier tidak ditemukan" (gagal sungguhan)
-        // dari "tidak ada perubahan konten" (bukan kegagalan).
         $existingPage = $pageModel->getByIdentifier($identifier);
         if (!$existingPage) {
-            die("Error: Halaman dengan identifier \"" . htmlspecialchars($identifier) . "\" tidak ditemukan di database.");
+            $this->pageError('Halaman dengan identifier "' . $identifier . '" tidak ditemukan.', 'admin/pages');
         }
 
         $htmlContent = sanitizeHtmlContent($_POST['html_content'] ?? '');
         $adminId = $_SESSION['admin_id'] ?? null;
 
-        // Konten dari Rich Text Editor sekarang disaring lewat HTML Purifier
-        // (lihat sanitizeHtmlContent() di config/security.php) sebelum disimpan.
-
-        // updateContent() bisa return false kalau tidak ada baris yang benar-benar berubah
-        // (misal konten yang disubmit identik dengan yang sudah tersimpan) —
-        // itu BUKAN kegagalan, karena identifier-nya sudah kita pastikan ada di atas.
         $pageModel->updateContent($identifier, $htmlContent, $adminId);
 
-        header("Location: " . BASE_URL . "admin/pages/edit/" . $identifier . "?status=success");
+        regenerateCsrfToken();
+        logInfo("Page updated: identifier={$identifier} (admin_id: {$adminId})");
+
+        $_SESSION['page_edit_flash'] = 'Konten halaman berhasil diperbarui.';
+        header("Location: " . BASE_URL . "admin/pages/edit/" . $identifier);
         exit;
     }
 }

@@ -9,7 +9,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <form action="<?= BASE_URL ?>admin/pages/store" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
                 
                 <div class="mb-3">
                     <label for="title" class="form-label fw-semibold">Judul Halaman</label>
@@ -28,7 +28,7 @@
                 </div>
 
                 <div class="text-end">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success btn-submit">
                         Simpan Halaman Baru
                     </button>
                 </div>
@@ -39,7 +39,7 @@
 
 <!-- Load CKEditor 5 dari CDN -->
 <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-<script>
+<script nonce="<?= generateCspNonce() ?>">
     ClassicEditor
         .create(document.querySelector('#editor'))
         .catch(error => {

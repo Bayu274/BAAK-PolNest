@@ -39,7 +39,7 @@ if (!function_exists('emit_security_headers')) {
         // Content Security Policy (nonce-based untuk script-src)
         $nonce = generateCspNonce();
         header("Content-Security-Policy: default-src 'self'; " .
-               "script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net; " .
+               "script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdn.ckeditor.com; " .
                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
                "img-src 'self' data: blob:; " .
                "font-src 'self' https://cdn.jsdelivr.net data:; " .
@@ -157,6 +157,38 @@ if (!function_exists('checkRateLimit')) {
             return false; // Fail-closed on DB error
         }
     }
+}
+
+if (!function_exists('cleanupRateLimitGlobal')) {
+    /**
+     * Bersihkan SEMUA record rate limit yang sudah lebih dari 1 jam.
+     * Dipanggil sekali per request, tapi hanya eksekusi sekali per jam (throttle via session).
+     */
+    function cleanupRateLimitGlobal(): void {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $now = time();
+        $lastCleanup = $_SESSION['_rl_cleanup'] ?? 0;
+
+        if (($now - $lastCleanup) < 3600) {
+            return; // Baru di-cleanup kurang dari 1 jam yang lalu
+        }
+
+        $_SESSION['_rl_cleanup'] = $now;
+
+        try {
+            $db = getDbConnection();
+            $cutoff = date('Y-m-d H:i:s', $now - 3600);
+            $stmt = $db->prepare("DELETE FROM rate_limit_attempts WHERE window_start < :cutoff");
+            $stmt->execute(['cutoff' => $cutoff]);
+        } catch (Throwable $e) {
+            error_log("Rate limit cleanup error: " . $e->getMessage());
+        }
+    }
+
+    cleanupRateLimitGlobal();
 }
 
 if (!function_exists('e')) {

@@ -3,7 +3,10 @@
 // BASE_URL terdeteksi otomatis dari environment (host, port) supaya tidak perlu
 // diubah manual tiap developer punya setup XAMPP berbeda (port 8080, 80, dst).
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+$rawHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+// Validasi host — hanya izinkan karakter hostname yang valid (cegah Host Header Injection)
+$host = preg_match('/^[a-zA-Z0-9._-]+$/', $rawHost) ? $rawHost : 'localhost';
 
 $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $scriptDir = rtrim($scriptDir, '/');

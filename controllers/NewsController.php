@@ -19,23 +19,28 @@ class NewsController extends Controller {
     }
 
     // ==========================================
-    // AREA PUBLIK (FRONTEND)
+    // HELPER: Flash message + redirect (mirip FileController::fileError)
     // ==========================================
 
-    public function index() {
-        $news = $this->newsModel->getAll();
-
-        $this->render('frontend/home', [
-            'title' => 'Beranda - BAAK Polnest',
-            'news' => $news
-        ]);
+    private function newsError(string $message, string $redirect): void {
+        $_SESSION['import_error'] = $message;
+        header("Location: " . BASE_URL . $redirect);
+        exit;
     }
+
+    // ==========================================
+    // AREA PUBLIK (FRONTEND)
+    // ==========================================
 
     public function show($slug) {
         $news = $this->newsModel->getBySlug($slug);
 
         if (!$news) {
-            die("Berita tidak ditemukan.");
+            http_response_code(404);
+            $this->render('frontend/news-detail', [
+                'news' => ['title' => 'Tidak Ditemukan', 'content' => '<p>Berita yang Anda cari tidak ditemukan.</p>', 'created_at' => date('Y-m-d H:i:s'), 'thumbnail_image' => null]
+            ]);
+            return;
         }
 
         $this->render('frontend/news-detail', ['news' => $news]);
@@ -50,27 +55,34 @@ class NewsController extends Controller {
 
         $news = $this->newsModel->getAll();
 
-        $this->render('backend/news-list', ['news' => $news], true);
+        $this->render('backend/news-list', [
+            'news' => $news,
+            'csrf_token' => generateCsrfToken()
+        ], true);
     }
 
     public function createForm() {
         $this->requireLogin();
 
-        $this->render('backend/news-form', [], true);
+        $this->render('backend/news-form', [
+            'csrf_token' => generateCsrfToken()
+        ], true);
     }
 
     public function store() {
         $this->requireLogin();
 
-        if (empty($_POST['csrf_token']) || !verifyCsrfToken($_POST['csrf_token'])) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            regenerateCsrfToken();
+            $this->newsError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/news/create');
         }
 
         $title = trim($_POST['title'] ?? '');
         $content = sanitizeHtmlContent($_POST['content'] ?? '');
 
         if (empty($title) || empty($content)) {
-            die("Error: Judul dan Konten berita wajib diisi!");
+            $this->newsError('Judul dan konten berita wajib diisi.', 'admin/news/create');
         }
 
         $slug = $this->generateSlug($title);
@@ -80,7 +92,7 @@ class NewsController extends Controller {
             $uploadResult = $this->validateUpload($_FILES['thumbnail_image']);
 
             if (isset($uploadResult['error'])) {
-                die("Gagal Upload: " . $uploadResult['error']);
+                $this->newsError($uploadResult['error'], 'admin/news/create');
             }
             $thumbnailPath = $uploadResult['path'];
         }
@@ -92,6 +104,9 @@ class NewsController extends Controller {
             'thumbnail_image' => $thumbnailPath,
             'created_by'      => $_SESSION['admin_id'] ?? null
         ]);
+
+        regenerateCsrfToken();
+        logInfo("News created: {$title} (admin_id: {$_SESSION['admin_id']})");
 
         header("Location: " . BASE_URL . "admin/news?status=success");
         exit;
@@ -107,17 +122,24 @@ class NewsController extends Controller {
 
         $news = $this->newsModel->getById($id);
         if (!$news) {
-            die("Berita tidak ditemukan.");
+            $this->newsError('Berita tidak ditemukan.', 'admin/news');
         }
 
-        $this->render('backend/news-form', ['news' => $news, 'isEdit' => true], true);
+        $this->render('backend/news-form', [
+            'news' => $news,
+            'isEdit' => true,
+            'csrf_token' => generateCsrfToken()
+        ], true);
     }
 
     public function update() {
         $this->requireLogin();
 
-        if (empty($_POST['csrf_token']) || !verifyCsrfToken($_POST['csrf_token'])) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            regenerateCsrfToken();
+            $id = $_POST['id'] ?? '';
+            $this->newsError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/news/edit?id=' . $id);
         }
 
         $id = $_POST['id'] ?? null;
@@ -125,7 +147,7 @@ class NewsController extends Controller {
         $content = sanitizeHtmlContent($_POST['content'] ?? '');
 
         if (!$id || empty($title) || empty($content)) {
-            die("Error: Data tidak lengkap.");
+            $this->newsError('Data tidak lengkap. Judul dan konten wajib diisi.', 'admin/news/edit?id=' . $id);
         }
 
         $slug = $this->generateSlug($title);
@@ -137,7 +159,7 @@ class NewsController extends Controller {
             $uploadResult = $this->validateUpload($_FILES['thumbnail_image']);
 
             if (isset($uploadResult['error'])) {
-                die("Gagal Upload: " . $uploadResult['error']);
+                $this->newsError($uploadResult['error'], 'admin/news/edit?id=' . $id);
             }
 
             if (!empty($oldNews['thumbnail_image'])) {
@@ -158,6 +180,9 @@ class NewsController extends Controller {
             'thumbnail_image' => $thumbnailPath
         ]);
 
+        regenerateCsrfToken();
+        logInfo("News updated: id={$id}, title={$title} (admin_id: {$_SESSION['admin_id']})");
+
         header("Location: " . BASE_URL . "admin/news?status=updated");
         exit;
     }
@@ -165,8 +190,10 @@ class NewsController extends Controller {
     public function delete($id) {
         $this->requireLogin();
 
-        if (empty($_POST['csrf_token']) || !verifyCsrfToken($_POST['csrf_token'])) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            regenerateCsrfToken();
+            $this->newsError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/news');
         }
 
         if ($id) {
@@ -180,7 +207,10 @@ class NewsController extends Controller {
             }
 
             $this->newsModel->delete($id);
+            logInfo("News deleted: id={$id} (admin_id: {$_SESSION['admin_id']})");
         }
+
+        regenerateCsrfToken();
 
         header("Location: " . BASE_URL . "admin/news?status=deleted");
         exit;
@@ -192,11 +222,30 @@ class NewsController extends Controller {
 
     private function generateSlug(string $title): string {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-        return trim($slug, '-');
+        $slug = trim($slug, '-');
+        if (empty($slug)) {
+            $slug = 'berita-' . bin2hex(random_bytes(4));
+        }
+
+        // Cek keunikan slug
+        $model = new News();
+        $originalSlug = $slug;
+        $counter = 2;
+        while (true) {
+            $existing = $model->getBySlug($slug);
+            if (!$existing) {
+                break;
+            }
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     private function validateUpload($file) {
         $allowedMimeTypes = ['image/jpeg', 'image/png'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png'];
         $maxSize = 2 * 1024 * 1024;
 
         if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -215,8 +264,11 @@ class NewsController extends Controller {
             return ['error' => 'Format file tidak diizinkan. Harap unggah file JPG atau PNG.'];
         }
 
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $uniqueName = uniqid('thumb_') . '.' . $extension;
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowedExtensions)) {
+            return ['error' => 'Ekstensi file tidak diizinkan.'];
+        }
+        $uniqueName = 'thumb_' . bin2hex(random_bytes(8)) . '.' . $extension;
 
         $uploadDir = __DIR__ . '/../storage/uploads/';
         if (!is_dir($uploadDir)) {

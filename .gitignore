@@ -5,12 +5,30 @@
 storage/uploads/*
 !storage/uploads/.gitkeep
 
-# File environment lokal (kalau nanti ada konfigurasi sensitif per developer)
+# Backup CSV sebelum import — jangan ikut ke-commit
+storage/backups/*
+!storage/backups/.gitkeep
+
+# Log files — jangan ikut ke-commit
+storage/logs/*
+!storage/logs/.gitkeep
+
+# File environment lokal (konfigurasi sensitif per developer)
 .env
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.sublime-*
+
+# Composer (jika digunakan di masa depan)
+vendor/
+composer.lock
 
 # File sistem OS
 Thumbs.db
 .DS_Store
 
-# Folder cache HTML Purifier (kalau suatu saat dipindah dari temp dir ke dalam project)
+# Folder cache HTMLPurifier
 libs/htmlpurifier-*/cache/

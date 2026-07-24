@@ -26,7 +26,7 @@
                                 <tr>
                                     <td class="text-center fw-bold text-secondary"><?= $no++ ?></td>
                                     <td>
-                                        <span class="fw-medium"><?= htmlspecialchars($item['title']) ?></span>
+                                        <span class="fw-medium"><?= e($item['title']) ?></span>
                                     </td>
                                     <td>
                                         <span class="badge bg-info text-dark">
@@ -35,13 +35,13 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <a href="<?= BASE_URL ?>admin/news/edit?id=<?= $item['id'] ?>" class="btn btn-sm btn-outline-warning me-1" title="Edit Berita">
+                                        <a href="<?= BASE_URL ?>admin/news/edit?id=<?= (int)$item['id'] ?>" class="btn btn-sm btn-outline-warning me-1" title="Edit Berita">
                                             <i class="bi bi-pencil-square"></i> Edit
                                         </a>
                                         <form action="<?= BASE_URL ?>admin/news/delete" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus berita ini? Tindakan ini tidak dapat dibatalkan.');">
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
-                                            <input type="hidden" name="id" value="<?= $item['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Berita">
+                                            <input type="hidden" name="csrf_token" value="<?= e($csrf_token ?? '') ?>">
+                                            <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-submit" title="Hapus Berita">
                                                 <i class="bi bi-trash3"></i> Hapus
                                             </button>
                                         </form>

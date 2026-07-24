@@ -9,12 +9,12 @@ class Page {
 
     // METHOD BARU: Untuk mengambil semua daftar halaman
     public function getAll() {
-        $stmt = $this->db->query("SELECT * FROM pages_content ORDER BY page_identifier ASC");
+        $stmt = $this->db->query("SELECT id, page_identifier, title, html_content, updated_by, last_updated FROM pages_content ORDER BY page_identifier ASC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getByIdentifier($identifier) {
-        $stmt = $this->db->prepare("SELECT * FROM pages_content WHERE page_identifier = :identifier LIMIT 1");
+        $stmt = $this->db->prepare("SELECT id, page_identifier, title, html_content, updated_by, last_updated FROM pages_content WHERE page_identifier = :identifier LIMIT 1");
         $stmt->execute(['identifier' => $identifier]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

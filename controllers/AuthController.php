@@ -23,7 +23,7 @@ class AuthController extends Controller
             return;
         }
 
-        $username = trim($_POST['username'] ?? '');
+        $username = mb_substr(trim($_POST['username'] ?? ''), 0, 50);
         $password = $_POST['password'] ?? '';
 
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -45,6 +45,7 @@ class AuthController extends Controller
         if ($admin && password_verify($password, $admin['password'])) {
             session_regenerate_id(true);
             $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_username'] = $admin['username'];
             header('Location: ' . BASE_URL . 'dashboard');
             exit;
         }
@@ -56,6 +57,21 @@ class AuthController extends Controller
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
+        }
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            header('Location: ' . BASE_URL . 'dashboard');
+            exit;
+        }
+
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
         }
         session_destroy();
         header('Location: ' . BASE_URL . 'login');

@@ -6,9 +6,8 @@ class News {
     }
 
     public function getAll($limit = null) {
-        $sql = "SELECT * FROM news ORDER BY created_at DESC";
+        $sql = "SELECT id, title, slug, content, thumbnail_image, created_by, created_at FROM news ORDER BY created_at DESC";
         if ($limit) {
-            // Pastikan limit adalah angka untuk keamanan
             $sql .= " LIMIT " . (int)$limit;
         }
         $stmt = $this->db->prepare($sql);
@@ -26,7 +25,7 @@ class News {
 }
     // Tambahkan di models/News.php
     public function getById($id) {
-    $stmt = $this->db->prepare("SELECT * FROM news WHERE id = ?");
+    $stmt = $this->db->prepare("SELECT id, title, slug, content, thumbnail_image, created_by, created_at FROM news WHERE id = ?");
     $stmt->execute([$id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -57,7 +56,7 @@ class News {
     return $stmt->execute([$id]);
 }
     public function getBySlug($slug) {
-        $stmt = $this->db->prepare("SELECT * FROM news WHERE slug = ? LIMIT 1");
+        $stmt = $this->db->prepare("SELECT id, title, slug, content, thumbnail_image, created_by, created_at FROM news WHERE slug = ? LIMIT 1");
         $stmt->execute([$slug]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

@@ -1,3 +1,10 @@
+# Block directory listing
+Options -Indexes
+
+# Block akses ke folder terlarang
+RewriteRule ^(config|core|models|migrations|storage/logs|storage/backups)/ - [F,L]
+
+# URL rewriting → index.php
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

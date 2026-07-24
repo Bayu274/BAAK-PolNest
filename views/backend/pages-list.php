@@ -47,7 +47,7 @@
                                             <!-- Token dari listAdmin() yang baru -->
                                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
                                             <input type="hidden" name="identifier" value="<?= htmlspecialchars($p['page_identifier']) ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger">
+                                            <button type="submit" class="btn btn-sm btn-danger btn-submit">
                                                 Hapus
                                             </button>
                                         </form>

@@ -18,6 +18,7 @@ require_once __DIR__ . '/config/logger.php';
 require_once __DIR__ . '/core/Router.php';
 require_once __DIR__ . '/core/Controller.php';
 require_once __DIR__ . '/config/security.php';
+emit_security_headers();
 require_once __DIR__ . '/models/Admin.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/DashboardController.php';
@@ -33,7 +34,7 @@ $authController = new AuthController();
 
 $router->addRoute('GET', '/login', [$authController, 'showLoginForm']);
 $router->addRoute('POST', '/login', [$authController, 'login']);
-$router->addRoute('GET', '/logout', [$authController, 'logout']);
+$router->addRoute('POST', '/logout', [$authController, 'logout']);
 
 $dashboardController = new DashboardController();
 $router->addRoute('GET', '/dashboard', [$dashboardController, 'index']);
@@ -50,14 +51,14 @@ $router->addRoute('POST', '/admin/news/store', function() use ($newsController) 
     $newsController->store();
 });
 $router->addRoute('GET', '/admin/news/edit', function() use ($newsController) {
-    $id = $_GET['id'] ?? null;
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
     $newsController->editForm($id);
 });
 $router->addRoute('POST', '/admin/news/update', function() use ($newsController) {
     $newsController->update();
 });
 $router->addRoute('POST', '/admin/news/delete', function() use ($newsController) {
-    $id = $_POST['id'] ?? null;
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
     $newsController->delete($id);
 });
 

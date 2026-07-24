@@ -22,21 +22,21 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0">
                         <?php if (!empty($item['thumbnail_image'])): ?>
-                            <img src="<?= BASE_URL . ltrim(htmlspecialchars($item['thumbnail_image']), '/') ?>" class="card-img-top" ...>
+                            <img src="<?= BASE_URL . ltrim(e($item['thumbnail_image']), '/') ?>" alt="<?= e($item['title']) ?>" class="card-img-top" style="height: 200px; object-fit: cover;">
                         <?php else: ?>
                             <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 200px;">
                                 <i class="bi bi-newspaper fs-1"></i>
                             </div>
                         <?php endif; ?>
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title fw-bold"><?= htmlspecialchars($item['title']) ?></h5>
+                            <h5 class="card-title fw-bold"><?= e($item['title']) ?></h5>
                             <p class="card-text text-muted small mb-3">
                                 <i class="bi bi-calendar3"></i> <?= date('d M Y', strtotime($item['created_at'])) ?>
                             </p>
                             <p class="card-text text-secondary" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                                <?= htmlspecialchars(substr(strip_tags($item['content']), 0, 150)) ?>...
+                                <?= e(substr(strip_tags($item['content']), 0, 150)) ?>...
                             </p>
-                            <a href="<?= BASE_URL ?>berita/<?= htmlspecialchars($item['slug']) ?>" class="btn btn-outline-primary mt-auto">Baca Selengkapnya</a>
+                            <a href="<?= BASE_URL ?>berita/<?= e($item['slug']) ?>" class="btn btn-outline-primary mt-auto">Baca Selengkapnya</a>
                         </div>
                     </div>
                 </div>
