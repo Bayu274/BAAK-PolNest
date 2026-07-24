@@ -13,8 +13,31 @@ class AuthController extends Controller
             session_start();
         }
 
-        $username = trim($_POST['username'] ?? '');
+        $csrfToken = $_POST['csrf_token'] ?? '';
+
+        if (!verifyCsrfToken($csrfToken)) {
+            unset($_SESSION['csrf_token']); // paksa token baru untuk percobaan berikutnya
+            $this->render('frontend/login', [
+                'error' => 'Sesi tidak valid, silakan coba lagi.'
+            ]);
+            return;
+        }
+
+        $username = mb_substr(trim($_POST['username'] ?? ''), 0, 50);
         $password = $_POST['password'] ?? '';
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        $ipAllowed = checkRateLimit($ip, 'login', 8, 300);
+        $usernameKey = 'login:' . strtolower($username);
+        $userAllowed = checkRateLimit($ip, $usernameKey, 5, 900);
+
+        if (!$ipAllowed || !$userAllowed) {
+            $this->render('frontend/login', [
+                'error' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam beberapa menit.'
+            ]);
+            return;
+        }
 
         $adminModel = new Admin();
         $admin = $adminModel->findByUsername($username);
@@ -22,7 +45,8 @@ class AuthController extends Controller
         if ($admin && password_verify($password, $admin['password'])) {
             session_regenerate_id(true);
             $_SESSION['admin_id'] = $admin['id'];
-            header('Location: /BAAK-PolNest/dashboard');
+            $_SESSION['admin_username'] = $admin['username'];
+            header('Location: ' . BASE_URL . 'dashboard');
             exit;
         }
 
@@ -34,8 +58,23 @@ class AuthController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            header('Location: ' . BASE_URL . 'dashboard');
+            exit;
+        }
+
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
         session_destroy();
-        header('Location: /BAAK-PolNest/login');
+        header('Location: ' . BASE_URL . 'login');
         exit;
     }
 }

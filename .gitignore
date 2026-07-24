@@ -1,0 +1,34 @@
+﻿# File backup manual (dibuat sebelum edit berisiko, bukan bagian dari source code)
+*.backup
+
+# Hasil upload testing — jangan ikut ke-commit, tapi folder tetap ada
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# Backup CSV sebelum import — jangan ikut ke-commit
+storage/backups/*
+!storage/backups/.gitkeep
+
+# Log files — jangan ikut ke-commit
+storage/logs/*
+!storage/logs/.gitkeep
+
+# File environment lokal (konfigurasi sensitif per developer)
+.env
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.sublime-*
+
+# Composer (jika digunakan di masa depan)
+vendor/
+composer.lock
+
+# File sistem OS
+Thumbs.db
+.DS_Store
+
+# Folder cache HTMLPurifier
+libs/htmlpurifier-*/cache/

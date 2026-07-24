@@ -1,9 +1,10 @@
 <?php
 
-// Pastikan file ini tidak bisa diakses langsung tanpa routing
 if (!defined('BASE_URL')) {
     exit('No direct script access allowed');
 }
+
+require_once __DIR__ . '/../models/News.php';
 
 /**
  * NewsController
@@ -11,134 +12,250 @@ if (!defined('BASE_URL')) {
  */
 class NewsController extends Controller {
 
+    private News $newsModel;
+
     public function __construct() {
-        // Nanti kita akan load model News di sini
-        // $this->newsModel = $this->model('News');
+        $this->newsModel = new News();
+    }
+
+    // ==========================================
+    // HELPER: Flash message + redirect (mirip FileController::fileError)
+    // ==========================================
+
+    private function newsError(string $message, string $redirect): void {
+        $_SESSION['import_error'] = $message;
+        header("Location: " . BASE_URL . $redirect);
+        exit;
     }
 
     // ==========================================
     // AREA PUBLIK (FRONTEND)
     // ==========================================
 
-    public function index() {
-        // TODO: Ambil semua data berita dari database
-        // $news = $this->newsModel->getAll();
-        
-        // Load view frontend (home.php)
-        $this->render('frontend/home', [
-            'title' => 'Beranda - BAAK Polnest'
-            // 'news' => $news
-        ]);
-    }
-
     public function show($slug) {
-        // TODO: Ambil detail berita berdasarkan slug
-        
-        // Load view frontend (news-detail.php)
-        $this->render('frontend/news-detail');
-    }
+        $news = $this->newsModel->getBySlug($slug);
 
+        if (!$news) {
+            http_response_code(404);
+            $this->render('frontend/news-detail', [
+                'news' => ['title' => 'Tidak Ditemukan', 'content' => '<p>Berita yang Anda cari tidak ditemukan.</p>', 'created_at' => date('Y-m-d H:i:s'), 'thumbnail_image' => null]
+            ]);
+            return;
+        }
+
+        $this->render('frontend/news-detail', ['news' => $news]);
+    }
 
     // ==========================================
     // AREA ADMIN (BACKEND)
     // ==========================================
 
     public function listAdmin() {
-        // PROTEKSI: Cek login admin (Method requireLogin akan dibuat Dev 1)
-        // $this->requireLogin();
-        
-        // Load view backend (news-list.php)
-        $this->render('backend/news-list');
+        $this->requireLogin();
+
+        $news = $this->newsModel->getAll();
+
+        $this->render('backend/news-list', [
+            'news' => $news,
+            'csrf_token' => generateCsrfToken()
+        ], true);
     }
 
     public function createForm() {
-        // PROTEKSI: Cek login admin
-        // $this->requireLogin();
-        
-        $this->render('backend/news-form');
+        $this->requireLogin();
+
+        $this->render('backend/news-form', [
+            'csrf_token' => generateCsrfToken()
+        ], true);
     }
 
     public function store() {
-        // 1. Verifikasi CSRF Token
-        if (empty($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
-            die("Akses ditolak: Token CSRF tidak valid!");
+        $this->requireLogin();
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            regenerateCsrfToken();
+            $this->newsError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/news/create');
         }
 
-        // 2. Tangkap Input
         $title = trim($_POST['title'] ?? '');
-        $content = $_POST['content'] ?? ''; // Dibiarkan mentah karena dari TinyMCE/CKEditor
+        $content = sanitizeHtmlContent($_POST['content'] ?? '');
 
         if (empty($title) || empty($content)) {
-            die("Error: Judul dan Konten berita wajib diisi!");
+            $this->newsError('Judul dan konten berita wajib diisi.', 'admin/news/create');
         }
 
-        // Sanitasi Judul (wajib htmlspecialchars untuk mencegah XSS)
-        $titleSanitized = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+        $slug = $this->generateSlug($title);
 
-        // 3. Generate Slug dari Judul
-        $slug = $this->generateSlug($titleSanitized);
-
-        // 4. Proses Upload Thumbnail (Opsional)
         $thumbnailPath = null;
-        if (!empty($_FILES['thumbnail']['name'])) {
-            $uploadResult = $this->validateUpload($_FILES['thumbnail']);
-            
-            // Jika ada error dari helper validasi upload
+        if (!empty($_FILES['thumbnail_image']['name'])) {
+            $uploadResult = $this->validateUpload($_FILES['thumbnail_image']);
+
             if (isset($uploadResult['error'])) {
-                die("Gagal Upload: " . $uploadResult['error']);
+                $this->newsError($uploadResult['error'], 'admin/news/create');
             }
             $thumbnailPath = $uploadResult['path'];
         }
 
-        // 5. Simpan ke Database via Model News
-        // Asumsi base controller memiliki method load model, atau kita require manual
-        require_once __DIR__ . '/../models/News.php';
-        $newsModel = new News();
-
-        $newsId = $newsModel->create([
-            'title'           => $titleSanitized,
+        $this->newsModel->create([
+            'title'           => $title,
             'slug'            => $slug,
             'content'         => $content,
             'thumbnail_image' => $thumbnailPath,
-            'created_by'      => $_SESSION['admin_id'] ?? null // Audit trail
+            'created_by'      => $_SESSION['admin_id'] ?? null
         ]);
 
-        // 6. Redirect kembali ke halaman list berita
-        header("Location: /admin/news?status=success");
+        regenerateCsrfToken();
+        logInfo("News created: {$title} (admin_id: {$_SESSION['admin_id']})");
+
+        header("Location: " . BASE_URL . "admin/news?status=success");
         exit;
     }
 
     public function editForm($id) {
-        // TODO: Ambil data berita berdasarkan ID lalu kirim ke view form
+        $this->requireLogin();
+
+        if (!$id) {
+            header("Location: " . BASE_URL . "admin/news");
+            exit;
+        }
+
+        $news = $this->newsModel->getById($id);
+        if (!$news) {
+            $this->newsError('Berita tidak ditemukan.', 'admin/news');
+        }
+
+        $this->render('backend/news-form', [
+            'news' => $news,
+            'isEdit' => true,
+            'csrf_token' => generateCsrfToken()
+        ], true);
     }
 
-    public function updateNews($id) {
-        // TODO: Proses update data ke database
+    public function update() {
+        $this->requireLogin();
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            regenerateCsrfToken();
+            $id = $_POST['id'] ?? '';
+            $this->newsError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/news/edit?id=' . $id);
+        }
+
+        $id = $_POST['id'] ?? null;
+        $title = trim($_POST['title'] ?? '');
+        $content = sanitizeHtmlContent($_POST['content'] ?? '');
+
+        if (!$id || empty($title) || empty($content)) {
+            $this->newsError('Data tidak lengkap. Judul dan konten wajib diisi.', 'admin/news/edit?id=' . $id);
+        }
+
+        $slug = $this->generateSlug($title);
+
+        $oldNews = $this->newsModel->getById($id);
+        $thumbnailPath = $oldNews['thumbnail_image'] ?? null;
+
+        if (!empty($_FILES['thumbnail_image']['name'])) {
+            $uploadResult = $this->validateUpload($_FILES['thumbnail_image']);
+
+            if (isset($uploadResult['error'])) {
+                $this->newsError($uploadResult['error'], 'admin/news/edit?id=' . $id);
+            }
+
+            if (!empty($oldNews['thumbnail_image'])) {
+                $oldFilePath = __DIR__ . '/..' . $oldNews['thumbnail_image'];
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
+            }
+
+            $thumbnailPath = $uploadResult['path'];
+        }
+
+        $this->newsModel->update([
+            'id'              => $id,
+            'title'           => $title,
+            'slug'            => $slug,
+            'content'         => $content,
+            'thumbnail_image' => $thumbnailPath
+        ]);
+
+        regenerateCsrfToken();
+        logInfo("News updated: id={$id}, title={$title} (admin_id: {$_SESSION['admin_id']})");
+
+        header("Location: " . BASE_URL . "admin/news?status=updated");
+        exit;
     }
 
-    public function destroy($id) {
-        // TODO: Proses hapus data dari database (termasuk hapus file gambar fisiknya)
+    public function delete($id) {
+        $this->requireLogin();
+
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            regenerateCsrfToken();
+            $this->newsError('Token CSRF tidak valid. Silakan coba lagi.', 'admin/news');
+        }
+
+        if ($id) {
+            $news = $this->newsModel->getById($id);
+
+            if ($news && !empty($news['thumbnail_image'])) {
+                $filePath = __DIR__ . '/..' . $news['thumbnail_image'];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+
+            $this->newsModel->delete($id);
+            logInfo("News deleted: id={$id} (admin_id: {$_SESSION['admin_id']})");
+        }
+
+        regenerateCsrfToken();
+
+        header("Location: " . BASE_URL . "admin/news?status=deleted");
+        exit;
     }
 
     // ==========================================
     // HELPER FUNCTIONS (PRIVATE)
     // ==========================================
 
+    private function generateSlug(string $title): string {
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+        $slug = trim($slug, '-');
+        if (empty($slug)) {
+            $slug = 'berita-' . bin2hex(random_bytes(4));
+        }
+
+        // Cek keunikan slug
+        $model = new News();
+        $originalSlug = $slug;
+        $counter = 2;
+        while (true) {
+            $existing = $model->getBySlug($slug);
+            if (!$existing) {
+                break;
+            }
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
     private function validateUpload($file) {
         $allowedMimeTypes = ['image/jpeg', 'image/png'];
-        $maxSize = 2 * 1024 * 1024; // Maksimal 2MB
+        $allowedExtensions = ['jpg', 'jpeg', 'png'];
+        $maxSize = 2 * 1024 * 1024;
 
-        // Cek apakah ada error dari sisi server PHP saat upload
         if ($file['error'] !== UPLOAD_ERR_OK) {
             return ['error' => 'Terjadi kesalahan sistem saat mengunggah file.'];
         }
 
-        // Cek Ukuran File
         if ($file['size'] > $maxSize) {
             return ['error' => 'Ukuran gambar maksimal adalah 2MB.'];
         }
 
-        // Keamanan Ekstra: Cek tipe MIME file yang sebenarnya (bukan hanya dari nama ekstensinya)
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mimeType = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
@@ -147,23 +264,20 @@ class NewsController extends Controller {
             return ['error' => 'Format file tidak diizinkan. Harap unggah file JPG atau PNG.'];
         }
 
-        // Generate nama file unik agar file lama tidak tertimpa
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $uniqueName = uniqid('thumb_') . '.' . $extension;
-        
-        // Tentukan lokasi penyimpanan (folder /storage/uploads di root folder)
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowedExtensions)) {
+            return ['error' => 'Ekstensi file tidak diizinkan.'];
+        }
+        $uniqueName = 'thumb_' . bin2hex(random_bytes(8)) . '.' . $extension;
+
         $uploadDir = __DIR__ . '/../storage/uploads/';
-        
-        // Buat foldernya jika ternyata belum ada secara fisik
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
 
         $destination = $uploadDir . $uniqueName;
 
-        // Pindahkan file dari temporary ke folder utama
         if (move_uploaded_file($file['tmp_name'], $destination)) {
-            // Kembalikan path relatif untuk disimpan ke database MySQL
             return ['path' => '/storage/uploads/' . $uniqueName];
         }
 

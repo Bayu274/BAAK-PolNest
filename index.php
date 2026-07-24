@@ -1,13 +1,32 @@
 <?php
 
 require_once __DIR__ . '/config/constants.php';
+
+// Konfigurasi session cookie SEBELUM session_start() dipanggil
+$cookieParams = [
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'httponly' => true,
+    'samesite' => 'Lax'
+];
+session_set_cookie_params($cookieParams);
+
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/logger.php';
 require_once __DIR__ . '/core/Router.php';
 require_once __DIR__ . '/core/Controller.php';
+require_once __DIR__ . '/config/security.php';
+emit_security_headers();
 require_once __DIR__ . '/models/Admin.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/controllers/NewsController.php';
+require_once __DIR__ . '/controllers/FileController.php';
+require_once __DIR__ . '/controllers/HomeController.php';
+require_once __DIR__ . '/controllers/PageController.php';
+require_once __DIR__ . '/controllers/AdvisorController.php';
 
 $router = new Router();
 
@@ -15,42 +34,68 @@ $authController = new AuthController();
 
 $router->addRoute('GET', '/login', [$authController, 'showLoginForm']);
 $router->addRoute('POST', '/login', [$authController, 'login']);
-$router->addRoute('GET', '/logout', [$authController, 'logout']);
+$router->addRoute('POST', '/logout', [$authController, 'logout']);
 
 $dashboardController = new DashboardController();
 $router->addRoute('GET', '/dashboard', [$dashboardController, 'index']);
 
-$router->addRoute('GET', '/test', function () {
-    echo "Router berhasil jalan!";
-});
-
 $newsController = new NewsController();
-$router->addRoute('POST', '/admin/news', function() use ($newsController) {
+
+$router->addRoute('GET', '/admin/news', function() use ($newsController) {
     $newsController->listAdmin();
+});
+$router->addRoute('GET', '/admin/news/create', function() use ($newsController) {
+    $newsController->createForm();
 });
 $router->addRoute('POST', '/admin/news/store', function() use ($newsController) {
     $newsController->store();
 });
-$router->addRoute('POST', '/admin/news/create', function() {
-    require_once __DIR__ . '/views/backend/news-form.php';
+$router->addRoute('GET', '/admin/news/edit', function() use ($newsController) {
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+    $newsController->editForm($id);
 });
-// Rute untuk menampilkan form edit
-$router->addRoute('POST', '/admin/news/edit', function() use ($newsController) {
-    $id = $_GET['id'] ?? null;
-    $newsController->editForm($id); 
-});
-// Rute untuk memproses update data ke database
 $router->addRoute('POST', '/admin/news/update', function() use ($newsController) {
     $newsController->update();
 });
-// Rute untuk memproses penghapusan berita
 $router->addRoute('POST', '/admin/news/delete', function() use ($newsController) {
-    $id = $_GET['id'] ?? null;
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
     $newsController->delete($id);
 });
-$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$requestUri = str_replace('/BAAK-PolNest', '', $requestUri);
 
-$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'POST';
+// Detail berita publik — menggantikan HomeController::showNews() yang sudah dihapus
+$router->addRoute('GET', '/berita/{slug}', [$newsController, 'show']);
+
+$fileController = new FileController();
+
+$router->addRoute('GET', '/admin/files', [$fileController, 'listAdmin']);
+$router->addRoute('POST', '/admin/files/upload', [$fileController, 'store']);
+$router->addRoute('POST', '/admin/files/delete', [$fileController, 'delete']);
+
+$pageController = new PageController();
+$router->addRoute('GET', '/admin/pages', [$pageController, 'listAdmin']);
+// Tambahkan 3 rute ini di bawah rute GET /admin/pages
+$router->addRoute('GET', '/admin/pages/create', [$pageController, 'createForm']);
+$router->addRoute('POST', '/admin/pages/store', [$pageController, 'store']);
+$router->addRoute('POST', '/admin/pages/delete', [$pageController, 'delete']);
+$router->addRoute('GET', '/admin/pages/edit/{identifier}', [$pageController, 'editForm']);
+$router->addRoute('POST', '/admin/pages/save/{identifier}', [$pageController, 'save']);
+// Halaman SOP publik — menggantikan HomeController::showPage() yang sudah dihapus
+$router->addRoute('GET', '/halaman/{identifier}', [$pageController, 'show']);
+
+$advisorController = new AdvisorController();
+
+$router->addRoute('GET', '/pencarian-dosen', [$advisorController, 'showSearchPage']);
+$router->addRoute('POST', '/api/advisors/search', [$advisorController, 'search']);
+$router->addRoute('GET', '/admin/import-csv', [$advisorController, 'importCsvForm']);
+$router->addRoute('POST', '/admin/import-csv', [$advisorController, 'processImport']);
+
+$homeController = new HomeController();
+$router->addRoute('GET', '/', [$homeController, 'index']);
+$router->addRoute('GET', '/jadwal', [$homeController, 'showJadwal']);
+
+$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+$requestUri = str_replace(BASE_PATH, '', $requestUri);
+
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 $router->dispatch($requestUri, $requestMethod);
