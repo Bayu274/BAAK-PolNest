@@ -15,6 +15,15 @@ class FileController extends Controller {
     private const UPLOAD_DIR = __DIR__ . '/../storage/uploads/';
 
     /**
+     * Redirect ke form files dengan pesan error flash
+     */
+    private function fileError(string $message): void {
+        $_SESSION['import_error'] = $message;
+        header("Location: " . BASE_URL . "admin/files");
+        exit;
+    }
+
+    /**
      * Menampilkan halaman Manajemen File
      */
     public function listAdmin(): void {
@@ -39,16 +48,16 @@ class FileController extends Controller {
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
-            die("Error 403: CSRF Violation.");
+            $this->fileError('CSRF token tidak valid.');
         }
 
         $category = $_POST['file_category'] ?? '';
         if (!in_array($category, self::FILE_CATEGORIES)) {
-            die("Error: Kategori file tidak valid.");
+            $this->fileError('Kategori file tidak valid.');
         }
 
         if (!isset($_FILES['document_file']) || $_FILES['document_file']['error'] !== UPLOAD_ERR_OK) {
-            die("Error: File gagal diunggah.");
+            $this->fileError('File gagal diunggah.');
         }
 
         $fileTmp = $_FILES['document_file']['tmp_name'];
@@ -56,12 +65,12 @@ class FileController extends Controller {
         $originalName = $_FILES['document_file']['name'];
 
         if ($fileSize > self::MAX_DOCUMENT_BYTES) {
-            die("Error: Ukuran file melebihi batas 10MB.");
+            $this->fileError('Ukuran file maksimal 10MB.');
         }
 
         $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         if (!in_array($ext, ['pdf', 'docx'])) {
-            die("Error: Hanya file PDF dan DOCX yang diizinkan.");
+            $this->fileError('Hanya file PDF dan DOCX yang diizinkan.');
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -74,7 +83,7 @@ class FileController extends Controller {
         ];
 
         if (!in_array($mime, $allowedMimes)) {
-            die("Error: Konten file tidak cocok dengan ekstensi dokumen yang sah.");
+            $this->fileError('Konten file tidak valid.');
         }
 
         $randomName = 'doc_' . bin2hex(random_bytes(8)) . '.' . $ext;
@@ -82,19 +91,23 @@ class FileController extends Controller {
 
         if (move_uploaded_file($fileTmp, $destination)) {
             try {
-                $adminId = $_SESSION['admin_id'] ?? 1;
+                $adminId = $_SESSION['admin_id'];
                 
                 $model = new DownloadableFile();
                 $model->replaceByCategory($category, $originalName, $randomName, $adminId);
 
+                regenerateCsrfToken();
+                logInfo("File uploaded: {$originalName} (category: {$category}, admin_id: {$adminId})");
+
                 header("Location: " . BASE_URL . "admin/files?status=success");
                 exit;
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 unlink($destination);
-                die("Error: Gagal menyimpan data ke database.");
+                logError("File upload DB error: " . $e->getMessage());
+                $this->fileError('Gagal menyimpan data ke database.');
             }
         } else {
-            die("Error: Gagal memindahkan file ke direktori server.");
+            $this->fileError('Gagal memindahkan file ke server.');
         }
     }
 
@@ -106,16 +119,41 @@ class FileController extends Controller {
 
         $token = $_POST['csrf_token'] ?? '';
         if (!verifyCsrfToken($token)) {
-            die("Error 403: CSRF Violation.");
+            $this->fileError('CSRF token tidak valid.');
         }
 
         $id = (int)($_POST['file_id'] ?? 0);
         if ($id > 0) {
             $model = new DownloadableFile();
             $model->deactivate($id);
+
+            regenerateCsrfToken();
+            logInfo("File deactivated: id={$id} (admin_id: {$_SESSION['admin_id']})");
         }
         
         header("Location: " . BASE_URL . "admin/files?status=deleted");
         exit;
+    }
+
+    /**
+     * Membersihkan file fisik yang sudah tidak ada di database
+     */
+    private function cleanupOrphanedFiles(): void {
+        $uploadsDir = self::UPLOAD_DIR;
+        $model = new DownloadableFile();
+        
+        $activeFiles = $model->getActiveFileNames();
+        $activePaths = array_column($activeFiles, 'file_path');
+        
+        $files = glob($uploadsDir . 'doc_*');
+        foreach ($files as $file) {
+            $filename = basename($file);
+            if (!in_array($filename, $activePaths)) {
+                if (filemtime($file) < time() - (7 * 24 * 3600)) {
+                    unlink($file);
+                    logInfo("Cleaned orphaned file: {$filename}");
+                }
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Dashboard Admin - BAAK Politeknik Nest</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="d-flex">
@@ -30,5 +31,16 @@
             ?>
         </main>
     </div>
+    <script>
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('.btn-submit');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+            }
+        });
+    });
+    </script>
 </body>
 </html>

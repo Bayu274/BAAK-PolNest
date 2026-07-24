@@ -7,7 +7,7 @@
             </div>
 
             <div class="list-group shadow-sm rounded-3 mb-4">
-                <a href="#" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
+                <a href="<?= BASE_URL ?>admin/files" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
                     <i class="bi bi-file-earmark-pdf-fill text-danger fs-3 me-3"></i>
                     <div>
                         <div class="fw-semibold text-dark">Daftar Mata Kuliah per Prodi</div>
@@ -15,7 +15,7 @@
                     </div>
                     <i class="bi bi-download ms-auto text-primary"></i>
                 </a>
-                <a href="#" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
+                <a href="<?= BASE_URL ?>admin/files" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
                     <i class="bi bi-file-earmark-pdf-fill text-danger fs-3 me-3"></i>
                     <div>
                         <div class="fw-semibold text-dark">Koordinator Mata Kuliah</div>

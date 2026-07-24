@@ -14,16 +14,14 @@ document.addEventListener('DOMContentLoaded', function () {
     searchForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // Ambil elemen input secara langsung
         const inputNim = document.getElementById('input-nim');
         const inputNama = document.getElementById('input-nama');
         const submitBtn = document.getElementById('btn-submit-cari');
 
-        // Sembunyikan state lama
         alertBox.classList.add('d-none');
         alertBox.textContent = '';
         resultBox.classList.add('d-none');
-        resultBody.textContent = ''; // Aman mengosongkan tabel dengan cara ini
+        resultBody.textContent = '';
 
         const nimValue = inputNim.value.trim();
         const namaValue = inputNama.value.trim();
@@ -33,12 +31,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Tampilkan state loading pada tombol
+        // [2R] Simpan innerHTML (bukan textContent) supaya icon ikut tersimpan
         submitBtn.disabled = true;
-        const txtAsli = submitBtn.textContent;
-        submitBtn.textContent = 'Mencari...';
+        const txtAsli = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Mencari...';
 
-        // Lakukan pemanggilan AJAX Fetch API
+        // [2S] AbortController — timeout 30 detik
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
         fetch(BASE_URL + 'api/advisors/search', {
             method: 'POST',
             headers: {
@@ -47,9 +48,11 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 nim: nimValue,
                 student_name: namaValue
-            })
+            }),
+            signal: controller.signal
         })
         .then(async response => {
+            clearTimeout(timeoutId);
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.message || 'Terjadi kesalahan sistem.');
@@ -57,24 +60,35 @@ document.addEventListener('DOMContentLoaded', function () {
             return data;
         })
         .then(res => {
+            // [2T] Cek array kosong sebelum render tabel
             if (res.status === 'success' && Array.isArray(res.data)) {
-                renderTabelHasil(res.data);
+                if (res.data.length === 0) {
+                    tampilkanError('Data tidak ditemukan atau kecocokan tidak valid.');
+                } else {
+                    renderTabelHasil(res.data);
+                }
             } else {
                 tampilkanError('Format data yang diterima tidak sesuai.');
             }
         })
         .catch(error => {
-            tampilkanError(error.message);
+            // [2S] Handle AbortError dari timeout
+            if (error.name === 'AbortError') {
+                tampilkanError('Permintaan timeout. Silakan coba lagi.');
+            } else {
+                tampilkanError(error.message || 'Gagal terhubung ke server.');
+            }
         })
         .finally(() => {
-            // Kembalikan state tombol
+            clearTimeout(timeoutId);
             submitBtn.disabled = false;
-            submitBtn.textContent = txtAsli;
+            // [2R] Restore innerHTML (icon + teks)
+            submitBtn.innerHTML = txtAsli;
         });
     });
 
     function tampilkanError(pesan) {
-        alertBox.textContent = pesan; // Menggunakan textContent, kebal XSS
+        alertBox.textContent = pesan;
         alertBox.classList.remove('d-none');
     }
 
@@ -89,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const cellTipe = document.createElement('td');
             const badge = document.createElement('span');
             
-            // Map badge secara manual di client, dilarang ambil class bootstrap langsung dari string server
             badge.className = 'badge';
             if (item.advisor_type === 'Wali') {
                 badge.classList.add('bg-primary');
@@ -103,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(cellTipe);
 
             const cellNamaDosen = document.createElement('td');
-            cellNamaDosen.textContent = item.advisor_name || '-'; // textContent menjamin karakter tag HTML dirender sebagai teks biasa
+            cellNamaDosen.textContent = item.advisor_name || '-';
             cellNamaDosen.classList.add('fw-bold');
             row.appendChild(cellNamaDosen);
 

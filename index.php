@@ -90,6 +90,7 @@ $router->addRoute('POST', '/admin/import-csv', [$advisorController, 'processImpo
 
 $homeController = new HomeController();
 $router->addRoute('GET', '/', [$homeController, 'index']);
+$router->addRoute('GET', '/jadwal', [$homeController, 'showJadwal']);
 
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $requestUri = str_replace(BASE_PATH, '', $requestUri);

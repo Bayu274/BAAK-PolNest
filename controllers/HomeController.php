@@ -16,6 +16,10 @@ class HomeController extends Controller {
 
     public function index() {
         $latestNews = $this->newsModel->getAll(6);
-        $this->render('frontend/home', ['latestNews' => $latestNews]);
+        $this->render('frontend/home', ['latestNews' => $latestNews], 'frontend');
+    }
+
+    public function showJadwal() {
+        $this->render('frontend/jadwal', ['pageTitle' => 'Jadwal & Pedoman BAAK'], 'frontend');
     }
 }

@@ -20,11 +20,11 @@
 
                     <form id="form-cari-dosen">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Nomor Induk Mahasiswa (NIM)</label>
+                            <label for="input-nim" class="form-label fw-semibold">Nomor Induk Mahasiswa (NIM)</label>
                             <input type="text" class="form-control form-control-lg" id="input-nim" placeholder="Masukkan NIM Anda" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Nama Lengkap</label>
+                            <label for="input-nama" class="form-label fw-semibold">Nama Lengkap</label>
                             <input type="text" class="form-control form-control-lg" id="input-nama" placeholder="Masukkan Nama Lengkap Anda" required>
                         </div>
                         <button type="submit" id="btn-submit-cari" class="btn btn-primary btn-lg w-100 py-3 mt-2">
@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <div id="container-hasil-pencarian" class="mt-4 d-none">
+            <div id="container-hasil-pencarian" class="mt-4 d-none" aria-live="polite">
                 <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
                     <div class="card-header bg-success text-white py-3 px-4 d-flex align-items-center">
                         <i class="bi bi-check-circle-fill fs-5 me-2"></i>
@@ -59,7 +59,7 @@
     </div>
 </div>
 
-<script>
-    const BASE_URL = '<?= BASE_URL ?>'; 
+<script nonce="<?= generateCspNonce() ?>">
+    const BASE_URL = <?= json_encode(BASE_URL) ?>;
 </script>
-<script src="<?= BASE_URL ?>assets/js/search-dosen.js"></script>
+<script nonce="<?= generateCspNonce() ?>" src="<?= BASE_URL ?>assets/js/search-dosen.js"></script>

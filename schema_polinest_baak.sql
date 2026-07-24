@@ -102,11 +102,14 @@ INSERT INTO `pages_content` (`id`, `page_identifier`, `html_content`, `updated_b
 --
 
 CREATE TABLE `rate_limit_attempts` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `ip_address` varchar(45) NOT NULL,
-  `endpoint` varchar(100) NOT NULL,
+  `endpoint` varchar(255) NOT NULL,
+  `window_start` timestamp NOT NULL DEFAULT current_timestamp(),
   `attempt_count` int(11) NOT NULL DEFAULT 1,
-  `window_start` timestamp NOT NULL DEFAULT current_timestamp()
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_ip_endpoint_window` (`ip_address`,`endpoint`,`window_start`),
+  KEY `idx_window_start` (`window_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -149,7 +152,8 @@ ALTER TABLE `downloadable_files`
 ALTER TABLE `news`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `slug` (`slug`),
-  ADD KEY `idx_created_at` (`created_at`);
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_news_created_by` (`created_by`);
 
 --
 -- Indexes for table `pages_content`
@@ -164,13 +168,15 @@ ALTER TABLE `pages_content`
 --
 ALTER TABLE `rate_limit_attempts`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_ip_endpoint` (`ip_address`,`endpoint`);
+  ADD UNIQUE KEY `uk_ip_endpoint_window` (`ip_address`,`endpoint`,`window_start`),
+  ADD KEY `idx_window_start` (`window_start`);
 
 --
 -- Indexes for table `student_advisors`
 --
 ALTER TABLE `student_advisors`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_nim_type` (`nim`,`advisor_type`),
   ADD KEY `idx_nim_student_name` (`nim`,`student_name`);
 
 --

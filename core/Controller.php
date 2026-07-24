@@ -2,7 +2,7 @@
 
 class Controller
 {
-    protected function render(string $view, array $data = [], bool $useLayout = false): void
+    protected function render(string $view, array $data = [], bool|string $useLayout = false): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -21,17 +21,27 @@ class Controller
             }
         }
 
-        if ($useLayout) {
-            // Render view ke buffer dulu, hasilnya jadi $content untuk layout
+        if ($useLayout === true) {
+            // Backend admin layout
             ob_start();
             require $viewPath;
             $content = ob_get_clean();
-
             $layoutPath = __DIR__ . '/../views/backend/layout.php';
             require $layoutPath;
             return;
         }
 
+        if ($useLayout === 'frontend') {
+            // Frontend public layout
+            ob_start();
+            require $viewPath;
+            $content = ob_get_clean();
+            $layoutPath = __DIR__ . '/../views/frontend/layout.php';
+            require $layoutPath;
+            return;
+        }
+
+        // No layout (fragment)
         require $viewPath;
     }
 

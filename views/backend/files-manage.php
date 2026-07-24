@@ -1,5 +1,23 @@
 <!-- views/backend/files-manage.php -->
 <div class="container-fluid mt-4">
+    <?php if (isset($_GET['status'])): ?>
+        <?php if ($_GET['status'] === 'success'): ?>
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle-fill"></i> File berhasil diunggah!
+            </div>
+        <?php elseif ($_GET['status'] === 'deleted'): ?>
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-trash-fill"></i> File berhasil dihapus.
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['import_error'])): ?>
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> <?= e($_SESSION['import_error']); ?>
+        </div>
+        <?php unset($_SESSION['import_error']); ?>
+    <?php endif; ?>
     <div class="row">
         <!-- Form Upload -->
         <div class="col-md-4 mb-4">
@@ -12,8 +30,8 @@
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrf_token); ?>">
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Kategori Dokumen</label>
-                            <select name="file_category" class="form-select" required>
+                            <label for="file_category" class="form-label fw-bold">Kategori Dokumen</label>
+                            <select name="file_category" id="file_category" class="form-select" required>
                                 <option value="">-- Pilih Kategori --</option>
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?php echo e($cat); ?>"><?php echo e(ucwords(str_replace('_', ' ', $cat))); ?></option>
@@ -22,12 +40,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Pilih File (PDF / DOCX)</label>
-                            <input type="file" name="document_file" class="form-control" accept=".pdf,.docx" required>
+                            <label for="document_file" class="form-label fw-bold">Pilih File (PDF / DOCX)</label>
+                            <input type="file" name="document_file" id="document_file" class="form-control" accept=".pdf,.docx" required>
                             <div class="form-text text-muted">Maksimal ukuran 10 MB. Mengunggah file pada kategori yang sama akan menonaktifkan file lama secara otomatis.</div>
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100">Simpan File</button>
+                        <button type="submit" class="btn btn-success w-100 btn-submit"><i class="bi bi-upload"></i> Simpan File</button>
                     </form>
                 </div>
             </div>
@@ -59,18 +77,21 @@
                                 <tr>
                                     <td><span class="badge bg-secondary"><?php echo e(strtoupper(str_replace('_', ' ', $file['file_category']))); ?></span></td>
                                     <td class="fw-bold"><?php echo e($file['file_name']); ?></td>
-                                    <td><?php echo e(date('d M Y H:i', strtotime($file['uploaded_at']))); ?></td>
                                     <td>
-                                        <!-- Tombol Download (Akses langsung ke folder fisik) -->
+                                        <?php 
+                                        $timestamp = strtotime($file['uploaded_at']);
+                                        echo e($timestamp ? date('d M Y H:i', $timestamp) : $file['uploaded_at']);
+                                        ?>
+                                    </td>
+                                    <td>
                                         <a href="<?= BASE_URL ?>storage/uploads/<?php echo e($file['file_path']); ?>" class="btn btn-sm btn-outline-primary" target="_blank" download>
                                             <i class="bi bi-download"></i>
                                         </a>
 
-                                        <!-- Form Soft Delete -->
                                         <form action="<?= BASE_URL ?>admin/files/delete" method="POST" class="d-inline" onsubmit="return confirm('Hapus file ini?');">
                                             <input type="hidden" name="csrf_token" value="<?php echo e($csrf_token); ?>">
                                             <input type="hidden" name="file_id" value="<?php echo e($file['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-submit">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
