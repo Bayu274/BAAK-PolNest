@@ -9,7 +9,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
             <form action="<?= BASE_URL ?>admin/pages/store" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
+                <input type="hidden" name="csrf_token" value="<?= e($csrf_token ?? '') ?>">
                 
                 <div class="mb-3">
                     <label for="title" class="form-label fw-semibold">Judul Halaman</label>

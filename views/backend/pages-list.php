@@ -28,25 +28,25 @@
                                 <tr>
                                     <td class="ps-4 align-middle"><?= $no++ ?></td>
                                     <td class="align-middle">
-                                        <span class="badge bg-secondary"><?= htmlspecialchars($p['page_identifier']) ?></span>
+                                        <span class="badge bg-secondary"><?= e($p['page_identifier']) ?></span>
                                     </td>
                                     <td class="align-middle fw-semibold">
-                                        <?= htmlspecialchars($p['title'] ?? $p['page_identifier']) ?>
+                                        <?= e($p['title'] ?? $p['page_identifier']) ?>
                                     </td>
                                     <td class="align-middle text-muted">
-                                        <?= isset($p['updated_at']) ? date('d M Y H:i', strtotime($p['updated_at'])) : '-' ?>
+                                        <?= isset($p['last_updated']) ? date('d M Y H:i', strtotime($p['last_updated'])) : '-' ?>
                                     </td>
                                     <td class="align-middle text-center pe-4">
                                         <!-- Tombol Edit -->
-                                        <a href="<?= BASE_URL ?>admin/pages/edit/<?= htmlspecialchars($p['page_identifier']) ?>" class="btn btn-sm btn-primary">
+                                        <a href="<?= BASE_URL ?>admin/pages/edit/<?= e($p['page_identifier']) ?>" class="btn btn-sm btn-primary">
                                             Edit
                                         </a>
                                         
                                         <!-- Form & Tombol Hapus -->
                                         <form action="<?= BASE_URL ?>admin/pages/delete" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus halaman ini?');">
                                             <!-- Token dari listAdmin() yang baru -->
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
-                                            <input type="hidden" name="identifier" value="<?= htmlspecialchars($p['page_identifier']) ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= e($csrf_token ?? '') ?>">
+                                            <input type="hidden" name="identifier" value="<?= e($p['page_identifier']) ?>">
                                             <button type="submit" class="btn btn-sm btn-danger btn-submit">
                                                 Hapus
                                             </button>

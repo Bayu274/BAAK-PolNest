@@ -8,7 +8,7 @@
                 </ol>
             </nav>
 
-            <h1 class="fw-bold mb-3"><?= htmlspecialchars($news['title']) ?></h1>
+            <h1 class="fw-bold mb-3"><?= e($news['title']) ?></h1>
             <div class="text-muted mb-4 pb-3 border-bottom">
                 <i class="bi bi-calendar3 me-1"></i> Dipublikasikan pada: <?= date('d F Y, H:i', strtotime($news['created_at'])) ?>
             </div>

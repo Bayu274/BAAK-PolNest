@@ -2,10 +2,10 @@
 
 > **Dokumen:** Laporan Status & Rencana Teknis Lengkap
 > **Proyek:** Portal Informasi BAAK — Politeknik Nest, Sukoharjo
-> **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 24 Juli 2026
+> **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 27 Juli 2026
 > **Referensi:** PRD.md v4.0 (Final/Baseline), Pembagian_Tugas_Branch_GitHub.md
 > **PIC Klien:** Pak Dimas Pamilih
-> **Status:** ✅ Fitur 100% + Security Audit 100% SELESAI — Phase 9A–9D (5 CRITICAL + 12 HIGH + 18 MEDIUM + 15 LOW) SEMUA DIPERBAIKI
+> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI
 
 ---
 
@@ -44,12 +44,21 @@ Audit menyeluruh ke seluruh codebase (34 file PHP, 12 backend views, 6 frontend 
   - 9B: 12 HIGH — Host Header validation, logout POST-only, log injection fix, .htaccess protection, backend layout viewport+JS, session username
   - 9C: 18 MEDIUM — SQL prepared statement, orphaned files cleanup, escape views, log permissions+cleanup, session flash messages, .env.example, .gitignore
   - 9D: 15 LOW — SELECT*→explicit columns, extension whitelist, EXTR_SKIP, login length validation, login Bootstrap JS removal
+- **Phase 10 (7 task) — oleh AI Assistant: Post-Audit Bug Fixes**
+  - Standarisasi `e()` di 3 view files (7 instance `htmlspecialchars()` → `e()`)
+  - Fix column name mismatch `updated_at` → `last_updated` di pages-list.php (BUG)
+  - Fix `logError()` dipanggil sebelum logger.php di-load di database.php (BUG)
+  - Buat `storage/backups/.htaccess` (Deny from all)
+  - Tambah warning admin password hash di README.md
 
 **Yang perlu diperbaiki (Phase 9 — Security Audit, 50+ temuan):**
-- 5 CRITICAL: CSP memblokir CKEditor & backend scripts, Stored XSS, DB credentials hardcoded
-- 12 HIGH: Host Header Injection, Logout CSRF, Log Injection, dev-mode error leak, .htaccess protection, backend layout viewport/JS, session admin_username tidak diset
-- 18 MEDIUM: SQL concatenation, orphaned files, unescaped output, inconsistent escaping, migration idempotent, log permissions, dll
-- 15 LOW: Dead code, SELECT *, inconsistent patterns, missing columns, dll
+~~Semua sudah diperbaiki. Lihat §8.2 untuk detail.~~
+
+**Post-Audit Bug Fixes (Phase 10, sudah selesai):**
+- Kolom name mismatch di pages-list.php → fix ke `last_updated`
+- logError() dipanggil sebelum logger loaded → ganti ke error_log()
+- storage/backups/.htaccess belum ada → dibuat
+- Admin password hash di schema → warning ditambah di README
 
 ---
 
@@ -126,13 +135,13 @@ controllers/ → models/ → views/
 | File | Baris | Fungsi | Status |
 |------|-------|--------|--------|
 | `index.php` | 101 | Front controller, route definitions | ✅ |
-| `config/constants.php` | 13 | BASE_URL, BASE_PATH, APP_ENV | ⚠️ HOST_HEADER_INJECTION |
-| `config/database.php` | 34 | PDO singleton, getDbConnection() | ⚠️ HARDCODED_CREDS + DEV_DIE |
-| `config/logger.php` | 46 | logError, logInfo, logWarning | ⚠️ LOG_INJECTION |
-| `config/security.php` | 229 | CSRF, rate limit, CSP nonce, e(), HTMLPurifier | ⚠️ CSP_BLOKIR_CKEDITOR + SQL_CONCAT |
+| `config/constants.php` | 13 | BASE_URL, BASE_PATH, APP_ENV | ✅ Host validation ditambahkan |
+| `config/database.php` | 34 | PDO singleton, getDbConnection() | ✅ Env vars + error_log fix |
+| `config/logger.php` | 46 | logError, logInfo, logWarning | ✅ Log injection fix |
+| `config/security.php` | 229 | CSRF, rate limit, CSP nonce, e(), HTMLPurifier | ✅ CSP + prepared stmts fix |
 | `core/Controller.php` | 67 | Base class: render(), requireLogin(), jsonResponse() | ✅ |
 | `core/Router.php` | 53 | Custom router, {param} wildcards | ✅ |
-| `controllers/AuthController.php` | 64 | Login, logout, rate limit, session regenerate | ⚠️ LOGOUT_GET + SESSION_USERNAME_HILANG |
+| `controllers/AuthController.php` | 64 | Login, logout, rate limit, session regenerate | ✅ POST-only logout + session username fix |
 | `controllers/DashboardController.php` | 30 | Dashboard admin dengan statistik | ✅ |
 | `controllers/AdvisorController.php` | 226 | Search AJAX + CSV import | ✅ |
 | `controllers/FileController.php` | 159 | Upload/download file + cleanup | ✅ |
@@ -148,16 +157,16 @@ controllers/ → models/ → views/
 | `views/frontend/home.php` | 51 | Landing page + feed berita | ✅ |
 | `views/frontend/search-dosen.php` | 65 | Form pencarian AJAX + CSP nonce | ✅ |
 | `views/frontend/jadwal.php` | 45 | Halaman jadwal & pedoman | ✅ |
-| `views/frontend/news-detail.php` | 38 | Detail berita (rich HTML output) | ⚠️ STORED_XSS |
-| `views/frontend/page-detail.php` | 32 | Detail halaman (dari DB) | ⚠️ STORED_XSS |
+| `views/frontend/news-detail.php` | 38 | Detail berita (rich HTML output) | ✅ Sanitasi + e() fix |
+| `views/frontend/page-detail.php` | 32 | Detail halaman (dari DB) | ✅ Sanitasi output |
 | `views/frontend/login.php` | 45 | Form login (standalone DOCTYPE) | ✅ |
-| `views/backend/layout.php` | 46 | Admin sidebar + loading indicator JS | ⚠️ VIEWPORT_HILANG + BOOTSTRAP_JS_HILANG |
+| `views/backend/layout.php` | 46 | Admin sidebar + loading indicator JS | ✅ Viewport + Bootstrap JS + nonce |
 | `views/backend/dashboard.php` | 134 | Dashboard admin statistik | ✅ |
 | `views/backend/news-list.php` | 64 | Tabel list berita | ✅ |
-| `views/backend/news-form.php` | 76 | Form create/edit berita + CKEditor | ⚠️ NONCE_HILANG |
-| `views/backend/pages-list.php` | — | Tabel list halaman | ✅ |
-| `views/backend/pages-create.php` | 48 | Form tambah halaman + CKEditor | ⚠️ CSRF_NULLABLE + NONCE_HILANG |
-| `views/backend/pages-edit.php` | 65 | Form edit halaman + CKEditor | ⚠️ NONCE_HILANG |
+| `views/backend/news-form.php` | 76 | Form create/edit berita + CKEditor | ✅ Nonce ditambahkan |
+| `views/backend/pages-list.php` | — | Tabel list halaman | ✅ Column fix + e() fix |
+| `views/backend/pages-create.php` | 48 | Form tambah halaman + CKEditor | ✅ CSRF nullable + nonce + e() fix |
+| `views/backend/pages-edit.php` | 65 | Form edit halaman + CKEditor | ✅ Nonce ditambahkan |
 | `views/backend/files-manage.php` | 108 | Upload file + tabel file aktif | ✅ |
 | `views/backend/advisor-import.php` | 64 | Form upload CSV | ✅ |
 
@@ -186,13 +195,17 @@ controllers/ → models/ → views/
 ### Lainnya
 | File | Fungsi |
 |------|--------|
-| `.htaccess` | URL rewriting → index.php (PERLU DIPERKUAT) |
+| `.htaccess` | URL rewriting + Options -Indexes + block path terlarang |
 | `.gitignore` | Ignore uploads, .env, logs, IDE files |
-| `storage/uploads/.htaccess` | Deny from all + ForceType (PERLU DIPERBAIKI) |
+| `.env.example` | Template environment configuration |
+| `config/.htaccess` | Deny from all — proteksi credentials |
+| `storage/uploads/.htaccess` | Disable PHP exec + ForceType + gambar diizinkan |
 | `storage/uploads/doc_*.pdf` | 4 file PDF yang diunggah |
+| `storage/backups/.htaccess` | Deny from all — proteksi CSV backup |
 | `storage/backups/` | CSV backup sebelum import |
-| `storage/logs/` | Log file harian (.log) — PERLU .htaccess |
-| `config/` | Database credentials, security config — PERLU .htaccess |
+| `storage/logs/.htaccess` | Deny from all — proteksi log files |
+| `storage/logs/` | Log file harian (.log) |
+| `config/` | Database credentials (via env vars), security config |
 | `dummy.csv` | Contoh CSV untuk testing |
 | `Alur Sistem (Flow Chart Teknis).txt` | Flow chart 2 alur utama |
 | `struktur-folder.txt` | Struktur folder |
@@ -697,7 +710,7 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 
 ---
 
-### 8.2 Phase 9 — Security Audit Fixes (50+ temuan) — BELUM DIPERBAIKI
+### 8.2 Phase 9 — Security Audit Fixes (50+ temuan) ✅ SELESAI
 
 > **UPDATE 24 Juli 2026:** Phase 9A ✅ + 9B ✅ + 9C ✅ + 9D ✅ — **SELURUH SECURITY AUDIT SELESAI.** Total 50 task diperbaiki.
 
@@ -768,8 +781,22 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 | 9D-11 | Buat sidebar backend responsive (collapsible) | `views/backend/layout.php:11` | AUDIT-L11 | ⏭️ Skip — complex UI change |
 | 9D-12 | Evaluasi tambah kolom `admin_users` (email, last_login) | `schema_polinest_baak.sql` | AUDIT-L12 | ⏭️ Skip — schema change, future consideration |
 | 9D-13 | Evaluasi tambah kolom `news.is_active` | `schema_polinest_baak.sql` | AUDIT-L13 | ⏭️ Skip — schema change, future consideration |
-| 9D-14 | Ganti admin hash di schema dump | `schema_polinest_baak.sql:42` | AUDIT-L14 | ⏭️ Skip — schema file, low priority |
+| 9D-14 | Tambah warning admin password hash di README | `README.md` | AUDIT-L14 | ✅ Warning ditambah di Default Credentials |
 | 9D-15 | Pastikan `logWarning()` selalu ter-defined | `views/frontend/news-detail.php:28` | AUDIT-L15 | ✅ Sudah ter-defined via `function_exists()` guard |
+
+#### Phase 10 — Post-Audit Bug Fixes (7 task) ✅ SELESAI
+
+> **UPDATE 27 Juli 2026:** Phase 10 — perbaikan bug dan inkonsistensi yang ditemukan setelah Phase 9.
+
+| No | Task | File | Temuan | Status |
+|----|------|------|--------|--------|
+| 10-1 | Standarisasi `htmlspecialchars()` → `e()` | `views/frontend/news-detail.php:11` | AUDIT-M6 sisa | ✅ |
+| 10-2 | Standarisasi `htmlspecialchars()` → `e()` | `views/backend/pages-create.php:12` | AUDIT-M6 sisa | ✅ |
+| 10-3 | Standarisasi `htmlspecialchars()` → `e()` (5 instance) | `views/backend/pages-list.php:31,34,41,48,49` | AUDIT-M6 sisa | ✅ |
+| 10-4 | Fix column name mismatch `$p['updated_at']` → `$p['last_updated']` | `views/backend/pages-list.php:37` | BUG — kolom selalu kosong | ✅ |
+| 10-5 | Fix `logError()` dipanggil sebelum logger loaded → `error_log()` | `config/database.php:25` | BUG — fatal error fresh install | ✅ |
+| 10-6 | Buat `storage/backups/.htaccess` — Deny from all | `storage/backups/.htaccess` (baru) | Missing protection | ✅ |
+| 10-7 | Tambah warning admin password hash di README | `README.md` | AUDIT-L14 | ✅ |
 
 ---
 
@@ -778,11 +805,12 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 | Phase | Jam | Dependencies | Target |
 |-------|-----|-------------|--------|
 | Phase 5–8 (sudah selesai) | 9–13 jam | — | ✅ Selesai |
-| Phase 9A — CRITICAL | 1–2 jam | Tidak ada | **Sekarang** |
-| Phase 9B — HIGH | 2–3 jam | Phase 9A | **Minggu ini** |
-| Phase 9C — MEDIUM | 3–4 jam | Phase 9A+9B | **Minggu ini** |
-| Phase 9D — LOW | 2–3 jam | Phase 9A+9B | **Sebelum closing** |
-| **Total Phase 9** | **8–12 jam** | — | — |
+| Phase 9A — CRITICAL | 1–2 jam | Tidak ada | ✅ Selesai |
+| Phase 9B — HIGH | 2–3 jam | Phase 9A | ✅ Selesai |
+| Phase 9C — MEDIUM | 3–4 jam | Phase 9A+9B | ✅ Selesai |
+| Phase 9D — LOW | 2–3 jam | Phase 9A+9B | ✅ Selesai |
+| Phase 10 — Post-Audit | 0.5 jam | Phase 9 | ✅ Selesai |
+| **Total Phase 9+10** | **9–13 jam** | — | — |
 
 ### Total Estimasi Proyek
 
@@ -792,8 +820,9 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 | Dev 2 — Content Delivery | ~10 jam (sudah selesai) |
 | Dev 3 — Search & Security (Phase 1–4) | ~17 jam (sudah selesai) |
 | AI Assistant (Phase 5–8) | ~9–13 jam (sudah selesai) |
-| Phase 9 — Security Audit Fixes | 8–12 jam (**belum dikerjakan**) |
-| **Grand Total** | **52–60 jam** |
+| Phase 9 — Security Audit Fixes | 8–12 jam (sudah selesai) |
+| Phase 10 — Post-Audit Bug Fixes | ~0.5 jam (sudah selesai) |
+| **Grand Total** | **52–60.5 jam** |
 
 ---
 

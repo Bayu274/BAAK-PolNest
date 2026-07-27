@@ -116,7 +116,9 @@ BAAK-PolNest/
 |----------|----------|
 | admin | admin |
 
-> **Penting:** Ganti password segera setelah login pertama kali!
+> **Penting:** 
+> - Password default adalah `admin` — **wajib diganti** setelah login pertama kali.
+> - Hash password default juga ter-dump di `schema_polinest_baak.sql`. Jika repository bersifat publik, attacker bisa login menggunakan kredensial ini. Selalu ganti password setelah deployment.
 
 ## License
 

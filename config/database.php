@@ -22,7 +22,7 @@ function getDbConnection(): PDO
         try {
             $pdo = new PDO($dsn, $username, $password, $options);
         } catch (PDOException $e) {
-            logError("Database connection failed: " . $e->getMessage());
+            error_log("Database connection failed: " . $e->getMessage());
             die('Terjadi kesalahan sistem. Silakan coba lagi nanti.');
         }
     }
