@@ -6,7 +6,7 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https:
 
 $rawHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
 // Validasi host — hanya izinkan karakter hostname yang valid (cegah Host Header Injection)
-$host = preg_match('/^[a-zA-Z0-9._-]+$/', $rawHost) ? $rawHost : 'localhost';
+$host = preg_match('/^[a-zA-Z0-9.:_-]+$/', $rawHost) ? $rawHost : 'localhost';
 
 $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $scriptDir = rtrim($scriptDir, '/');
