@@ -42,12 +42,28 @@ class AuthController extends Controller
         $adminModel = new Admin();
         $admin = $adminModel->findByUsername($username);
 
-        if ($admin && password_verify($password, $admin['password'])) {
-            session_regenerate_id(true);
-            $_SESSION['admin_id'] = $admin['id'];
-            $_SESSION['admin_username'] = $admin['username'];
-            header('Location: ' . BASE_URL . 'dashboard');
-            exit;
+        if ($admin) {
+            $authenticated = false;
+
+            // 1) Metode utama: bcrypt (password_hash/password_verify — standar)
+            if (password_verify($password, $admin['password'])) {
+                $authenticated = true;
+            }
+            // 2) Kompatibilitas legacy: MD5 (32 hex). Hanya jembatan sementara —
+            //    hash langsung di-upgrade ke bcrypt agar tidak permanen lemah.
+            elseif (strlen($admin['password']) === 32 && hash_equals(md5($password), $admin['password'])) {
+                $authenticated = true;
+                $adminModel->updatePassword((int)$admin['id'], password_hash($password, PASSWORD_BCRYPT));
+                logWarning("Admin login via legacy MD5 hash — password di-upgrade ke bcrypt (admin_id: {$admin['id']})");
+            }
+
+            if ($authenticated) {
+                session_regenerate_id(true);
+                $_SESSION['admin_id'] = $admin['id'];
+                $_SESSION['admin_username'] = $admin['username'];
+                header('Location: ' . BASE_URL . 'dashboard');
+                exit;
+            }
         }
 
         $this->render('frontend/login', ['error' => 'Username atau password salah']);

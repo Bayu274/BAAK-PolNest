@@ -5,7 +5,7 @@
 > **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 31 Juli 2026
 > **Referensi:** PRD.md v4.0 (Final/Baseline), Pembagian_Tugas_Branch_GitHub.md
 > **PIC Klien:** Pak Dimas Pamilih
-> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) + Phase 15 (Fix Login Admin) SELESAI
+> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) + Phase 15 (Fix Login Admin) + Phase 16 (Legacy MD5 + Auto-Upgrade) SELESAI
 
 ---
 
@@ -913,6 +913,23 @@ Lalu login dengan `admin` / `admin` dan **segera ganti password**.
 
 ---
 
+### 8.8 Phase 16 — Kompatibilitas Legacy MD5 + Auto-Upgrade bcrypt ✅ SELESAI
+
+> **UPDATE 31 Juli 2026:** Permintaan agar sistem dapat membaca hash MD5 untuk password admin. Demi keamanan, MD5 diimplementasikan sebagai **jembatan sementara** (bukan dukungan permanen): login via MD5 berhasil, tetapi hash langsung di-upgrade ke bcrypt pada login sukses pertama (pola standar "upgrade-on-login"). MD5 tidak akan selamanya tersimpan di database.
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 16-1 | Tambah `Admin::updatePassword(int $id, string $hash)` — prepared statement positional | `models/Admin.php` | ✅ |
+| 16-2 | `AuthController::login()` — prioritas bcrypt, fallback MD5 (32 hex, `hash_equals` timing-safe), auto-upgrade ke bcrypt + `logWarning()` | `controllers/AuthController.php:45-67` | ✅ |
+
+**Catatan teknis Phase 16:**
+- Urutan verifikasi: **bcrypt dulu** → baru MD5. Hash MD5 yang valid harus persis 32 karakter hex (`md5()` output) dan dibandingkan dengan `hash_equals()` (timing-safe).
+- Setelah login sukses via MD5, `updatePassword()` mengganti hash DB ke bcrypt (`password_hash(PASSWORD_BCRYPT)`), lalu log warning mencatat kejadian upgrade.
+- MD5('admin') = `21232f297a57a5a743894a0e4a801fc3` (diverifikasi via PowerShell).
+- Saran keamanan: gunakan ini hanya untuk situasi darurat (mis. lupa password & butuh akses cepat), lalu segera loginkan sekali agar hash ter-upgrade — jangan biarkan hash MD5 menetap di DB.
+
+---
+
 ### Timeline Estimasi
 
 | Phase | Jam | Dependencies | Target |
@@ -928,7 +945,8 @@ Lalu login dengan `admin` / `admin` dan **segera ganti password**.
 | Phase 13 — Template CSV + Panduan XAMPP | ~1 jam | Phase 1–10 | ✅ Selesai |
 | Phase 14 — Design System Frontend | ~2–3 jam | Phase 1–13 | ✅ Selesai |
 | Phase 15 — Fix Login Admin | ~0.5 jam | — | ✅ Selesai |
-| **Total Phase 9–15** | **15.5–22.5 jam** | — | — |
+| Phase 16 — Legacy MD5 + Auto-Upgrade | ~0.5 jam | Phase 15 | ✅ Selesai |
+| **Total Phase 9–16** | **16–23 jam** | — | — |
 
 ### Total Estimasi Proyek
 
