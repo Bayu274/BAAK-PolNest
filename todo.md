@@ -5,7 +5,7 @@
 > **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 31 Juli 2026
 > **Referensi:** PRD.md v4.0 (Final/Baseline), Pembagian_Tugas_Branch_GitHub.md
 > **PIC Klien:** Pak Dimas Pamilih
-> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) SELESAI
+> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) + Phase 15 (Fix Login Admin) SELESAI
 
 ---
 
@@ -880,6 +880,39 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 
 ---
 
+### 8.7 Phase 15 — Fix Login Admin (tidak bisa login admin/admin) ✅ SELESAI
+
+> **UPDATE 31 Juli 2026:** Investigasi penyebab tidak bisa login dengan kredensial default. Ditemukan 3 penyebab potensial pada database lama (yang tidak ter-cover script migrasi gabungan, karena script tersebut sengaja TIDAK menyentuh `admin_users`):
+
+| Penyebab | Detail |
+|----------|--------|
+| **Hash `$2b$` tidak didukung PHP** | Hash di `schema_polinest_baak.sql` ber-prefix `$2b$` (format bcrypt Node.js). `password_verify()` PHP hanya mendukung `$2a$`/`$2y$` → selalu `false` meskipun password benar. |
+| **Tabel `admin_users` tidak ada** | Database lama yang dibangun sebelum fitur login belum tentu punya tabel ini — script migrasi gabungan tidak membuatnya. |
+| **Rate limit login terkunci** | `AuthController::login()` membatasi 8 percobaan/5 menit per IP & 5 percobaan/15 menit per username — percobaan berulang bisa mengunci login. |
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 15-1 | Buat tool CLI `tools/reset_admin_password.php` — idempotent, memperbaiki 3 penyebab di atas (create table if missing, konversi `$2b$`→`$2y$`, reset hash admin/admin dengan `password_hash()`, bersihkan rate limit login) | `tools/reset_admin_password.php` (baru) | ✅ |
+| 15-2 | Block akses web ke folder `tools/` di root `.htaccess` (defense-in-depth, pola sama dengan config/models/migrations) | `.htaccess` | ✅ |
+
+**Cara pakai (wajib CLI, bukan browser):**
+```bash
+php tools/reset_admin_password.php
+```
+Lalu login dengan `admin` / `admin` dan **segera ganti password**.
+
+**Catatan teknis Phase 15:**
+- Tool memakai positional placeholder (`?`) untuk `INSERT ... ON DUPLICATE KEY UPDATE` — aman dengan `PDO::ATTR_EMULATE_PREPARES => false` (native prepares; named placeholder ganda akan error HY093).
+- Konversi `$2b$`→`$2y$` memakai `SUBSTRING(password, 5)` — memotong prefix 4 karakter, sisa hash (cost+base64) tetap utuh.
+- Tool hanya menyentuh `admin_users` + baris rate limit endpoint `login` — tidak mengubah tabel lain.
+- Akses web ke tool diblokir ganda: guard `PHP_SAPI !== 'cli'` di dalam script + `RewriteRule` block di `.htaccess`.
+
+> **TINDAK LANJUT 31 Juli 2026 (dari dump DB user):** Root cause terkonfirmasi — dump `admin_users` berisi hash `$2b$10$...` (bcrypt Node.js) yang tidak didukung `password_verify()` PHP. Perbaikan:
+> - User menjalankan `UPDATE admin_users SET password = CONCAT('$2y$', SUBSTRING(password, 5)) WHERE username = 'admin' AND password LIKE '$2b$%'` di phpMyAdmin → login berhasil.
+> - **`schema_polinest_baak.sql` diperbarui** — hash default admin diganti dari `$2b$` → `$2y$` (prefix kompatibel PHP) agar fresh install tidak mengalami bug yang sama.
+
+---
+
 ### Timeline Estimasi
 
 | Phase | Jam | Dependencies | Target |
@@ -894,7 +927,8 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 | Phase 12 — Layanan BAAK (SOP Index) | ~1 jam | Phase 1–10 | ✅ Selesai |
 | Phase 13 — Template CSV + Panduan XAMPP | ~1 jam | Phase 1–10 | ✅ Selesai |
 | Phase 14 — Design System Frontend | ~2–3 jam | Phase 1–13 | ✅ Selesai |
-| **Total Phase 9+10+11+12+13+14** | **15–22 jam** | — | — |
+| Phase 15 — Fix Login Admin | ~0.5 jam | — | ✅ Selesai |
+| **Total Phase 9–15** | **15.5–22.5 jam** | — | — |
 
 ### Total Estimasi Proyek
 

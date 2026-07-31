@@ -2,7 +2,7 @@
 Options -Indexes
 
 # Block akses ke folder terlarang
-RewriteRule ^(config|core|models|migrations|storage/logs|storage/backups)/ - [F,L]
+RewriteRule ^(config|core|models|migrations|storage/logs|storage/backups|tools)/ - [F,L]
 
 # URL rewriting → index.php
 RewriteEngine On
