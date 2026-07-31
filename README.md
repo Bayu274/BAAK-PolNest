@@ -120,6 +120,44 @@ BAAK-PolNest/
 > - Password default adalah `admin` — **wajib diganti** setelah login pertama kali.
 > - Hash password default juga ter-dump di `schema_polinest_baak.sql`. Jika repository bersifat publik, attacker bisa login menggunakan kredensial ini. Selalu ganti password setelah deployment.
 
+## Panduan Deployment Lokal (XAMPP) & Performa
+
+### Setup XAMPP
+
+1. Letakkan folder project di `C:\xampp\htdocs\baak-polnest` (atau folder `htdocs` Anda).
+2. Aktifkan modul **Apache** dan **MySQL** di XAMPP Control Panel.
+3. Buat database baru `polinest_baak` di phpMyAdmin, lalu import `schema_polinest_baak.sql`.
+4. Jalankan migration jika ada data existing (lihat bagian Installation).
+5. Pastikan `config/.htaccess` dan `.htaccess` root aktif (fitur `AllowOverride All` di `httpd.conf` untuk folder htdocs).
+
+### Optimasi untuk ±1.000 Mahasiswa
+
+Buka `C:\xampp\php\php.ini` dan sesuaikan:
+
+```ini
+upload_max_filesize = 10M
+post_max_size = 12M
+max_execution_time = 60
+memory_limit = 128M
+```
+
+Buka `C:\xampp\mysql\bin\my.ini` dan sesuaikan:
+
+```ini
+[mysqld]
+max_connections = 200
+```
+
+> **Catatan:** `max_connections` di MariaDB/MySQL 5.7+ sering dibatasi jumlah open files OS. Di XAMPP, nilai 200 umumnya aman. Setelah mengubah, restart Apache & MySQL dari XAMPP Control Panel.
+
+### Checklist Sebelum Demo/Serah Terima
+
+- [ ] Ganti password admin default (`admin`/`admin`)
+- [ ] Impor CSV data pembimbing terbaru via menu Impor CSV (gunakan tombol **Unduh Template CSV** sebagai acuan format)
+- [ ] Isi berita/pengumuman dan halaman SOP dengan konten resmi
+- [ ] Test pencarian dosen (`/pencarian-dosen`) dengan data NIM+Nama asli
+- [ ] Test unduh file di halaman Jadwal & Pedoman
+
 ## License
 
 Proprietary — Politeknik Nest, Sukoharjo

@@ -62,6 +62,9 @@ $router->addRoute('POST', '/admin/news/delete', function() use ($newsController)
     $newsController->delete($id);
 });
 
+// Katalog berita publik (arsip lengkap) — ditambahkan Phase 11
+$router->addRoute('GET', '/berita', [$newsController, 'indexPublic']);
+
 // Detail berita publik — menggantikan HomeController::showNews() yang sudah dihapus
 $router->addRoute('GET', '/berita/{slug}', [$newsController, 'show']);
 
@@ -79,6 +82,9 @@ $router->addRoute('POST', '/admin/pages/store', [$pageController, 'store']);
 $router->addRoute('POST', '/admin/pages/delete', [$pageController, 'delete']);
 $router->addRoute('GET', '/admin/pages/edit/{identifier}', [$pageController, 'editForm']);
 $router->addRoute('POST', '/admin/pages/save/{identifier}', [$pageController, 'save']);
+// Katalog layanan/SOP publik — ditambahkan Phase 12
+$router->addRoute('GET', '/layanan', [$pageController, 'indexPublic']);
+
 // Halaman SOP publik — menggantikan HomeController::showPage() yang sudah dihapus
 $router->addRoute('GET', '/halaman/{identifier}', [$pageController, 'show']);
 
@@ -86,6 +92,7 @@ $advisorController = new AdvisorController();
 
 $router->addRoute('GET', '/pencarian-dosen', [$advisorController, 'showSearchPage']);
 $router->addRoute('POST', '/api/advisors/search', [$advisorController, 'search']);
+$router->addRoute('GET', '/admin/import-csv/template', [$advisorController, 'downloadTemplate']);
 $router->addRoute('GET', '/admin/import-csv', [$advisorController, 'importCsvForm']);
 $router->addRoute('POST', '/admin/import-csv', [$advisorController, 'processImport']);
 

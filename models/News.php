@@ -5,13 +5,20 @@ class News {
         $this->db = getDbConnection();
     }
 
-    public function getAll($limit = null) {
-        $sql = "SELECT id, title, slug, content, thumbnail_image, created_by, created_at FROM news ORDER BY created_at DESC";
+    public function getAll($limit = null, $keyword = null) {
+        $sql = "SELECT id, title, slug, content, thumbnail_image, created_by, created_at FROM news";
+        $params = [];
+        if (!empty($keyword)) {
+            $sql .= " WHERE title LIKE ? OR content LIKE ?";
+            $params[] = '%' . $keyword . '%';
+            $params[] = '%' . $keyword . '%';
+        }
+        $sql .= " ORDER BY created_at DESC";
         if ($limit) {
             $sql .= " LIMIT " . (int)$limit;
         }
         $stmt = $this->db->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

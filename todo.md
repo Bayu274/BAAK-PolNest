@@ -2,10 +2,10 @@
 
 > **Dokumen:** Laporan Status & Rencana Teknis Lengkap
 > **Proyek:** Portal Informasi BAAK — Politeknik Nest, Sukoharjo
-> **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 27 Juli 2026
+> **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 31 Juli 2026
 > **Referensi:** PRD.md v4.0 (Final/Baseline), Pembagian_Tugas_Branch_GitHub.md
 > **PIC Klien:** Pak Dimas Pamilih
-> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI
+> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) SELESAI
 
 ---
 
@@ -102,7 +102,9 @@ controllers/ → models/ → views/
 | GET | `/jadwal` | HomeController::showJadwal() | Publik |
 | GET | `/pencarian-dosen` | AdvisorController::showSearchPage() | Publik |
 | POST | `/api/advisors/search` | AdvisorController::search() | Publik (AJAX) |
+| GET | `/berita` | NewsController::indexPublic() | Publik |
 | GET | `/berita/{slug}` | NewsController::show() | Publik |
+| GET | `/layanan` | PageController::indexPublic() | Publik |
 | GET | `/halaman/{identifier}` | PageController::show() | Publik |
 | GET | `/login` | AuthController::showLoginForm() | Publik |
 | POST | `/login` | AuthController::login() | Publik |
@@ -123,6 +125,7 @@ controllers/ → models/ → views/
 | GET | `/admin/files` | FileController::listAdmin() | Admin |
 | POST | `/admin/files/upload` | FileController::store() | Admin |
 | POST | `/admin/files/delete` | FileController::delete() | Admin |
+| GET | `/admin/import-csv/template` | AdvisorController::downloadTemplate() | Admin |
 | GET | `/admin/import-csv` | AdvisorController::importCsvForm() | Admin |
 | POST | `/admin/import-csv` | AdvisorController::processImport() | Admin |
 
@@ -710,9 +713,7 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 
 ---
 
-### 8.2 Phase 9 — Security Audit Fixes (50+ temuan) ✅ SELESAI
-
-> **UPDATE 24 Juli 2026:** Phase 9A ✅ + 9B ✅ + 9C ✅ + 9D ✅ — **SELURUH SECURITY AUDIT SELESAI.** Total 50 task diperbaiki.
+### 8.2 Phase 9 — Security Audit Fixes (50+ temuan) ✅ SELESAI> **UPDATE 24 Juli 2026:** Phase 9A ✅ + 9B ✅ + 9C ✅ + 9D ✅ — **SELURUH SECURITY AUDIT SELESAI.** Total 50 task diperbaiki.
 
 #### Phase 9A — CRITICAL Fixes (5 task) ✅ SELESAI
 
@@ -800,6 +801,85 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 
 ---
 
+### 8.3 Phase 11 — Modul Katalog Berita Publik (`/berita`) ✅ SELESAI
+
+> **UPDATE 31 Juli 2026:** Penambahan halaman katalog berita publik (arsip lengkap) + menu navigasi "Berita" di navbar & footer, sebagai tindak lanjut hasil analisis perbandingan dengan portal referensi (baak.gunadarma.ac.id). Tidak ada perubahan pada rute/controller lain yang sudah ada.
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 11-1 | Tambah parameter `$keyword` di `News::getAll()` — pencarian judul/isi berita dengan prepared statement (positional `?`, kompatibel native prepares `EMULATE_PREPARES=false`) | `models/News.php` | ✅ |
+| 11-2 | Tambah method `NewsController::indexPublic()` — ambil arsip berita + query `?q=` untuk pencarian | `controllers/NewsController.php` | ✅ |
+| 11-3 | Tambah route `GET /berita` (sebelum `GET /berita/{slug}` agar tidak konflik) | `index.php` | ✅ |
+| 11-4 | Buat view `views/frontend/news-list.php` — grid card responsif, form pencarian, empty state, escaping `e()` di semua output | `views/frontend/news-list.php` (baru) | ✅ |
+| 11-5 | Tambah menu "Berita" di navbar & footer publik | `views/frontend/layout.php` | ✅ |
+
+**Catatan teknis Phase 11:**
+- Rute `GET /berita` didaftarkan **sebelum** `GET /berita/{slug}` — Router mencocokkan route pertama yang cocok, sehingga `/berita` (tanpa slug) masuk ke katalog, bukan detail.
+- Pencarian memakai placeholder positional (`?`) dua kali, bukan named placeholder — karena `config/database.php` menonaktifkan emulasi prepare (`PDO::ATTR_EMULATE_PREPARES => false`), named placeholder ganda akan memicu `HY093 Invalid parameter number` di MySQL/MariaDB.
+- Semua output di view baru memakai helper `e()` (konsisten dengan standar Phase 9C-6/10).
+- `News::getAll()` backward-compatible: `getAll(6)` di `HomeController::index()` dan `getAll()` di `NewsController::listAdmin()` tetap berfungsi tanpa perubahan.
+
+---
+
+### 8.4 Phase 12 — Halaman Layanan BAAK (Indeks SOP Publik) ✅ SELESAI
+
+> **UPDATE 31 Juli 2026:** Menghubungkan halaman SOP statis (`/halaman/{identifier}`) ke menu navigasi publik, sesuai rencana Tahap 2 (Penguatan Layanan Publik & SOP). Sebelumnya halaman SOP tidak memiliki pintu masuk dari menu — mahasiswa tidak bisa menemukan SOP secara langsung.
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 12-1 | Tambah method `PageController::indexPublic()` — ambil seluruh halaman SOP via `Page::getAll()` yang sudah ada | `controllers/PageController.php` | ✅ |
+| 12-2 | Tambah route `GET /layanan` (tidak konflik dengan `/halaman/{identifier}` — exact match) | `index.php` | ✅ |
+| 12-3 | Buat view `views/frontend/pages-list.php` — grid card SOP, breadcrumb, empty state, escaping `e()` | `views/frontend/pages-list.php` (baru) | ✅ |
+| 12-4 | Tambah menu "Layanan BAAK" di navbar & footer publik | `views/frontend/layout.php` | ✅ |
+
+**Catatan teknis Phase 12:**
+- `Page::getAll()` sudah ada dan dipakai ulang (tidak ada duplikasi query baru).
+- `last_updated` dipakai untuk menampilkan tanggal pembaruan — sesuai kolom aktual di `pages_content` (mengikuti fix Phase 10-4).
+
+---
+
+### 8.5 Phase 13 — Template CSV & Panduan Deployment XAMPP ✅ SELESAI
+
+> **UPDATE 31 Juli 2026:** Persiapan serah terima (Tahap 3): template CSV resmi untuk impor data pembimbing semesteran + dokumentasi optimasi XAMPP untuk beban ±1.000 mahasiswa.
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 13-1 | Buat template CSV (`nim, student_name, advisor_name, advisor_type`) dengan 3 contoh baris sesuai format validasi import | `storage/templates/template_dosen_pembimbing.csv` (baru) | ✅ |
+| 13-2 | Proteksi folder templates — `Require all denied` (pola sama dengan backups/logs) | `storage/templates/.htaccess` (baru) | ✅ |
+| 13-3 | Tambah method `AdvisorController::downloadTemplate()` — requireLogin() + header download CSV yang benar | `controllers/AdvisorController.php` | ✅ |
+| 13-4 | Tambah route `GET /admin/import-csv/template` | `index.php` | ✅ |
+| 13-5 | Tambah tombol "Unduh Template CSV" di halaman import | `views/backend/advisor-import.php` | ✅ |
+| 13-6 | Tambah section "Panduan Deployment Lokal (XAMPP) & Performa" + checklist serah terima di README | `README.md` | ✅ |
+
+**Catatan teknis Phase 13:**
+- Template disajikan lewat controller (bukan akses HTTP langsung) — file tetap terproteksi `.htaccess`, hanya admin login yang bisa mengunduh.
+- Format CSV mengikuti persis validasi `processImport()`: header lowercase tanpa BOM, kolom `advisor_type` hanya `Wali`/`Magang`/`TA`.
+- `.gitignore` TIDAK mengecualikan `storage/templates/` — template adalah file sumber yang wajib ter-commit (berbeda dengan uploads/backups).
+
+---
+
+### 8.6 Phase 14 — Design System Frontend (patokan `politekniknest.design.md`) ✅ SELESAI
+
+> **UPDATE 31 Juli 2026:** Penerapan design tokens dari `politekniknest.design.md` (ekstraksi dari situs resmi https://politekniknest.ac.id/) ke seluruh frontend publik: warna brand (primary `#3a4f66`, accent `#074c84`, surface `#f96d80`), tipografi Montserrat + Roboto, radius, shadow, dan motion.
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 14-1 | Buat `assets/css/design-system.css` — design tokens + override Bootstrap 5.3 (CSS variables `--bs-*`) | `assets/css/design-system.css` (baru) | ✅ |
+| 14-2 | Update frontend layout: Google Fonts (Montserrat 700/800, Roboto 400/500), link design-system.css, topbar kontak, class `navbar-nest` & `footer-nest` | `views/frontend/layout.php` | ✅ |
+| 14-3 | Restyle hero beranda (`hero-nest` — gradient brand + badge surface + shadow elevated) & section title + tombol "Lihat Semua" ke `/berita` | `views/frontend/home.php` | ✅ |
+| 14-4 | Restyle halaman login (icon dalam lingkaran brand, fonts, CSS link) | `views/frontend/login.php` | ✅ |
+| 14-5 | Whitelist Google Fonts di CSP — `style-src` + `https://fonts.googleapis.com`, `font-src` + `https://fonts.gstatic.com` | `config/security.php:43,45` | ✅ |
+
+**Catatan teknis Phase 14:**
+- Pendekatan utama: **override variabel Bootstrap 5.3** (`--bs-primary`, `--bs-secondary`, `--bs-dark`, `--bs-body-font-family`, dll.) — seluruh komponen (btn-primary, text-primary, bg-dark, badge, form) ter-restyle otomatis tanpa mengubah markup view lain → risiko rendah, tidak menyentuh file backend.
+- `text-secondary` kini mengikuti token `text-muted: #074c84` (biru tua) — konsisten dengan situs resmi.
+- Google Fonts di-load via `<link>` sehingga wajib masuk whitelist CSP (pola sama seperti AUDIT-C1/9A-1: CDN whitelist).
+- **Tidak ada perubahan pada ID/class yang dipakai JavaScript** (`form-cari-dosen`, `input-nim`, `input-nama`, `btn-submit-cari`, `container-hasil-pencarian`, `table-body-hasil`, `alert-pesan-error`) — pencarian AJAX tetap berfungsi.
+- Card memakai shadow token `rgba(0,0,0,0.1) 5px 5px 20px` + hover lift (elevated shadow) dengan easing token.
+- View lain (`news-list`, `pages-list`, `news-detail`, `page-detail`, `search-dosen`, `jadwal`) tidak diubah markup-nya — ter-restyle otomatis via CSS variables.
+
+---
+
 ### Timeline Estimasi
 
 | Phase | Jam | Dependencies | Target |
@@ -810,7 +890,11 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 | Phase 9C — MEDIUM | 3–4 jam | Phase 9A+9B | ✅ Selesai |
 | Phase 9D — LOW | 2–3 jam | Phase 9A+9B | ✅ Selesai |
 | Phase 10 — Post-Audit | 0.5 jam | Phase 9 | ✅ Selesai |
-| **Total Phase 9+10** | **9–13 jam** | — | — |
+| Phase 11 — Katalog Berita Publik | ~1–2 jam | Phase 1–10 | ✅ Selesai |
+| Phase 12 — Layanan BAAK (SOP Index) | ~1 jam | Phase 1–10 | ✅ Selesai |
+| Phase 13 — Template CSV + Panduan XAMPP | ~1 jam | Phase 1–10 | ✅ Selesai |
+| Phase 14 — Design System Frontend | ~2–3 jam | Phase 1–13 | ✅ Selesai |
+| **Total Phase 9+10+11+12+13+14** | **15–22 jam** | — | — |
 
 ### Total Estimasi Proyek
 

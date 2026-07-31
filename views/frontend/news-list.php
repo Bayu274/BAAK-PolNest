@@ -1,29 +1,26 @@
-<main class="container mt-5">
-    <div class="hero-nest p-4 p-md-5 mb-5">
-        <div class="container-fluid px-0 py-2">
-            <span class="hero-nest-badge mb-3"><i class="bi bi-megaphone-fill"></i> Portal Resmi BAAK</span>
-            <h1 class="display-5 fw-bold mt-3">Portal Informasi BAAK</h1>
-            <p class="col-md-8 fs-5 mt-3 mb-4">
-                Selamat datang di layanan publik Biro Administrasi & Akademik Kampus Politeknik Nest.
-                Temukan pengumuman terbaru, kalender akademik, dan unduh dokumen keperluan perkuliahan dengan mudah.
-            </p>
-            <a href="<?= BASE_URL ?>pencarian-dosen" class="btn btn-light btn-lg">
-                <i class="bi bi-search"></i> Cari Dosen Pembimbing
-            </a>
+<main class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="<?= BASE_URL ?>" class="text-decoration-none">Beranda</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Berita</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Berita & Pengumuman</h1>
+            <p class="text-secondary mb-0">Seluruh informasi dan pengumuman terbaru dari BAAK Politeknik Nest.</p>
         </div>
+        <form action="<?= BASE_URL ?>berita" method="GET" class="d-flex" role="search">
+            <input type="search" name="q" class="form-control me-2" placeholder="Cari berita..." value="<?= e($searchQuery ?? '') ?>" aria-label="Cari berita">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+        </form>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-between align-items-center mb-4">
-            <h3 class="section-title-nest mb-0">Berita & Pengumuman Terbaru</h3>
-            <a href="<?= BASE_URL ?>berita" class="btn btn-outline-primary btn-sm">
-                Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-
-        <?php if (!empty($latestNews)): ?>
-            <?php foreach ($latestNews as $item): ?>
-                <div class="col-md-4 mb-4">
+    <?php if (!empty($newsList)): ?>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <?php foreach ($newsList as $item): ?>
+                <div class="col">
                     <div class="card h-100 shadow-sm border-0">
                         <?php if (!empty($item['thumbnail_image'])): ?>
                             <img src="<?= BASE_URL . ltrim(e($item['thumbnail_image']), '/') ?>" alt="<?= e($item['title']) ?>" class="card-img-top" style="height: 200px; object-fit: cover;">
@@ -45,11 +42,11 @@
                     </div>
                 </div>
             <?php endforeach; ?>
-        <?php else: ?>
-            <div class="col-12 text-center text-muted py-5">
-                <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
-                <p>Belum ada pengumuman terbaru yang dipublikasikan.</p>
-            </div>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php else: ?>
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+            <p class="mb-0"><?= !empty($searchQuery) ? 'Tidak ada berita yang cocok dengan kata kunci "' . e($searchQuery) . '".' : 'Belum ada berita yang dipublikasikan.' ?></p>
+        </div>
+    <?php endif; ?>
 </main>

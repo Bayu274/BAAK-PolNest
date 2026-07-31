@@ -31,6 +31,9 @@
                     <label for="csv_file" class="form-label fw-bold">Pilih File (.csv)</label>
                     <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
                     <div class="form-text">Maksimal ukuran file 5 MB.</div>
+                    <a href="<?= BASE_URL ?>admin/import-csv/template" class="btn btn-outline-secondary btn-sm mt-2">
+                        <i class="bi bi-download"></i> Unduh Template CSV
+                    </a>
                 </div>
 
                 <div class="mb-4">

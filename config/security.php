@@ -40,9 +40,9 @@ if (!function_exists('emit_security_headers')) {
         $nonce = generateCspNonce();
         header("Content-Security-Policy: default-src 'self'; " .
                "script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdn.ckeditor.com; " .
-               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
+               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " .
                "img-src 'self' data: blob:; " .
-               "font-src 'self' https://cdn.jsdelivr.net data:; " .
+               "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:; " .
                "connect-src 'self'; frame-ancestors 'self'; " .
                "base-uri 'self'; form-action 'self'");
 

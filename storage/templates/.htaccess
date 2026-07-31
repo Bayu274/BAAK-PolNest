@@ -1,0 +1,9 @@
+# Block semua akses HTTP langsung ke folder templates
+# File di sini hanya boleh disajikan melalui controller (auth + session)
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+</IfModule>

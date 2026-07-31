@@ -99,6 +99,33 @@ class AdvisorController extends Controller {
     }
 
     /**
+     * Mengunduh template CSV untuk staf BAAK (Phase 13)
+     * Hanya admin yang login yang dapat mengunduh.
+     */
+    public function downloadTemplate(): void {
+        $this->requireLogin();
+
+        $templatePath = __DIR__ . '/../storage/templates/template_dosen_pembimbing.csv';
+
+        if (!file_exists($templatePath)) {
+            $this->importError('Template CSV tidak ditemukan. Hubungi pengembang.');
+        }
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="template_dosen_pembimbing.csv"');
+        header('Content-Length: ' . filesize($templatePath));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        readfile($templatePath);
+        exit;
+    }
+
+    /**
      * [2H] Redirect ke form import dengan pesan error flash
      */
     private function importError(string $message): void {

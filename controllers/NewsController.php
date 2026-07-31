@@ -32,6 +32,17 @@ class NewsController extends Controller {
     // AREA PUBLIK (FRONTEND)
     // ==========================================
 
+    public function indexPublic() {
+        $keyword = isset($_GET['q']) ? trim($_GET['q']) : null;
+        $newsList = $this->newsModel->getAll(null, $keyword);
+
+        $this->render('frontend/news-list', [
+            'pageTitle' => 'Berita & Pengumuman BAAK',
+            'newsList'  => $newsList,
+            'searchQuery' => $keyword
+        ], 'frontend');
+    }
+
     public function show($slug) {
         $news = $this->newsModel->getBySlug($slug);
 

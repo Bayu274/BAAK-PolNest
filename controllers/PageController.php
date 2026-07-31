@@ -22,6 +22,16 @@ class PageController extends Controller {
     // AREA PUBLIK (FRONTEND)
     // ==========================================
 
+    public function indexPublic() {
+        $pageModel = new Page();
+        $pages = $pageModel->getAll();
+
+        $this->render('frontend/pages-list', [
+            'pageTitle' => 'Layanan BAAK',
+            'pages' => $pages
+        ], 'frontend');
+    }
+
     public function show($identifier) {
         $pageModel = new Page();
         $page = $pageModel->getByIdentifier($identifier);
