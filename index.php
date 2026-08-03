@@ -15,6 +15,8 @@ session_set_cookie_params($cookieParams);
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/logger.php';
+require_once __DIR__ . '/config/setup.php';
+ensureAppReady();
 require_once __DIR__ . '/core/Router.php';
 require_once __DIR__ . '/core/Controller.php';
 require_once __DIR__ . '/config/security.php';

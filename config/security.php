@@ -203,9 +203,16 @@ if (!function_exists('sanitizeHtmlContent')) {
     /**
      * Membersihkan HTML dari rich text editor (CKEditor/TinyMCE) sebelum disimpan ke database.
      * Mencegah XSS dari konten yang disimpan sebagai HTML mentah.
+     * Output di-cache per request agar konten yang sama tidak diproses berulang kali.
      */
     function sanitizeHtmlContent(string $dirty): string {
         static $purifier = null;
+        static $cache = [];
+
+        $key = md5($dirty);
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
 
         if ($purifier === null) {
             $purifierPath = __DIR__ . '/../libs/htmlpurifier-4.15.0-standalone/HTMLPurifier.standalone.php';
@@ -225,6 +232,35 @@ if (!function_exists('sanitizeHtmlContent')) {
             $purifier = new HTMLPurifier($config);
         }
 
-        return $purifier->purify($dirty);
+        $cache[$key] = normalizeRichContentLinks($purifier->purify($dirty));
+        return $cache[$key];
+    }
+}
+
+if (!function_exists('normalizeRichContentLinks')) {
+    /**
+     * Satu pass untuk menyempurnakan tautan pada konten rich text:
+     * 1) href tanpa protokol (mis. "bit.ly/xxx") diberi awalan https:// supaya tidak dianggap URL relatif.
+     * 2) tautan eksternal (http/https) diberi target="_blank" rel="noopener noreferrer" agar terbuka di tab baru.
+     * Dipanggil saat save (via sanitizeHtmlContent) dan saat render — idempotent.
+     */
+    function normalizeRichContentLinks(string $html): string {
+        return preg_replace_callback('/<a\b([^>]*)>/i', function ($m) {
+            $tag = $m[1];
+
+            $tag = preg_replace_callback('/href\s*=\s*(["\'])(.*?)\1/i', function ($h) {
+                $url = trim($h[2]);
+                if ($url !== '' && !preg_match('~^(https?://|mailto:|tel:|\#|/)~i', $url)) {
+                    return 'href=' . $h[1] . 'https://' . $url . $h[1];
+                }
+                return $h[0];
+            }, $tag);
+
+            if (!preg_match('~\btarget\s*=~i', $tag) && preg_match('~href\s*=\s*(["\'])https?://~i', $tag)) {
+                $tag .= ' target="_blank" rel="noopener noreferrer"';
+            }
+
+            return '<a' . $tag . '>';
+        }, $html);
     }
 }

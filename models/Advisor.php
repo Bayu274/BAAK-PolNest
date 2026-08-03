@@ -87,6 +87,12 @@ class Advisor {
     /**
      * Mengganti seluruh data dosen pembimbing menggunakan staging table (atomic swap).
      * Search tetap bisa dilakukan selama proses import berlangsung.
+     *
+     * CATATAN: staging table sengaja berupa tabel REGULER (bukan TEMPORARY) karena
+     * MySQL/MariaDB tidak mengizinkan RENAME tabel TEMPORARY menjadi tabel permanen.
+     * Swap dilakukan atomik via satu perintah RENAME TABLE. Jika gagal, tabel lama
+     * dikembalikan (recovery) sehingga sistem tidak pernah kehilangan data.
+     *
      * @param array $rows Data array multi-dimensi hasil parsing CSV
      */
     public function truncateAndReload(array $rows): void {
@@ -97,12 +103,10 @@ class Advisor {
         // Backup sebelum swap
         $this->backupCurrentData();
 
-        $this->db->beginTransaction();
-
         try {
-            // 1. Buat temporary table (copy struktur dari student_advisors)
-            $this->db->exec("DROP TEMPORARY TABLE IF EXISTS tmp_student_advisors");
-            $this->db->exec("CREATE TEMPORARY TABLE tmp_student_advisors LIKE student_advisors");
+            // 1. Buat staging table (copy struktur dari student_advisors)
+            $this->db->exec("DROP TABLE IF EXISTS tmp_student_advisors");
+            $this->db->exec("CREATE TABLE tmp_student_advisors LIKE student_advisors");
 
             // 2. Insert data ke staging dengan normalisasi lowercase
             $sqlInsert = "INSERT INTO tmp_student_advisors (nim, student_name, advisor_name, advisor_type) 
@@ -118,14 +122,25 @@ class Advisor {
                 ]);
             }
 
-            // 3. Atomic swap — DROP lama, RENAME staging jadi yang baru
-            $this->db->exec("DROP TABLE student_advisors");
-            $this->db->exec("RENAME TABLE tmp_student_advisors TO student_advisors");
+            // 3. Atomic swap — ganti nama kedua tabel dalam satu perintah (all-or-nothing)
+            $this->db->exec("RENAME TABLE student_advisors TO student_advisors_old, tmp_student_advisors TO student_advisors");
 
-            $this->db->commit();
+            // 4. Hapus tabel lama
+            $this->db->exec("DROP TABLE IF EXISTS student_advisors_old");
 
         } catch (Throwable $e) {
-            $this->db->rollBack();
+            // Recovery: pastikan tabel utama selalu ada dan jangan tinggalkan sisa staging
+            try {
+                $this->db->exec("DROP TABLE IF EXISTS tmp_student_advisors");
+                $hasMain = $this->db->query("SHOW TABLES LIKE 'student_advisors'")->fetchColumn();
+                $hasOld = $this->db->query("SHOW TABLES LIKE 'student_advisors_old'")->fetchColumn();
+                if (!$hasMain && $hasOld) {
+                    $this->db->exec("RENAME TABLE student_advisors_old TO student_advisors");
+                }
+                $this->db->exec("DROP TABLE IF EXISTS student_advisors_old");
+            } catch (Throwable $ignored) {
+                // Recovery terakhir gagal — biarkan error asli yang dilaporkan
+            }
             error_log("Gagal Impor CSV: " . $e->getMessage());
             throw new Exception("Terjadi kesalahan sistem saat menyimpan data. Seluruh perubahan telah dibatalkan.");
         }

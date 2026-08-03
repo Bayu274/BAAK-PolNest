@@ -40,11 +40,11 @@ class PageController extends Controller {
             http_response_code(404);
             $this->render('frontend/page-detail', [
                 'page' => ['title' => 'Tidak Ditemukan', 'page_identifier' => $identifier, 'html_content' => '<p>Halaman yang Anda cari tidak ditemukan.</p>']
-            ]);
+            ], 'frontend');
             return;
         }
 
-        $this->render('frontend/page-detail', ['page' => $page]);
+        $this->render('frontend/page-detail', ['page' => $page], 'frontend');
     }
 
     // ==========================================

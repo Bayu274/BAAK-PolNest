@@ -50,11 +50,11 @@ class NewsController extends Controller {
             http_response_code(404);
             $this->render('frontend/news-detail', [
                 'news' => ['title' => 'Tidak Ditemukan', 'content' => '<p>Berita yang Anda cari tidak ditemukan.</p>', 'created_at' => date('Y-m-d H:i:s'), 'thumbnail_image' => null]
-            ]);
+            ], 'frontend');
             return;
         }
 
-        $this->render('frontend/news-detail', ['news' => $news]);
+        $this->render('frontend/news-detail', ['news' => $news], 'frontend');
     }
 
     // ==========================================

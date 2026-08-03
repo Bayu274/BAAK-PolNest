@@ -180,7 +180,7 @@ class AdvisorController extends Controller {
         if (($handle = fopen($fileTmp, "r")) !== false) {
             // [2I] fgetcsv unlimited length
             // [2J] BOM strip + casing normalization
-            $header = fgetcsv($handle, -1, ",");
+            $header = fgetcsv($handle, null, ",");
 
             // Strip UTF-8 BOM jika ada
             if (count($header) > 0) {
@@ -199,7 +199,7 @@ class AdvisorController extends Controller {
             }
 
             $rowNumber = 2;
-            while (($data = fgetcsv($handle, -1, ",")) !== false) {
+            while (($data = fgetcsv($handle, null, ",")) !== false) {
                 if (array_filter($data) === []) continue;
 
                 if (count($data) !== 4) {
