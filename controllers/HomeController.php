@@ -15,7 +15,7 @@ class HomeController extends Controller {
     }
 
     public function index() {
-        $latestNews = $this->newsModel->getAll(6);
+        $latestNews = $this->newsModel->getAll(6, null, true);
         $this->render('frontend/home', ['latestNews' => $latestNews], 'frontend');
     }
 

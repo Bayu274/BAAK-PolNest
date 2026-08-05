@@ -34,7 +34,7 @@ class NewsController extends Controller {
 
     public function indexPublic() {
         $keyword = isset($_GET['q']) ? trim($_GET['q']) : null;
-        $newsList = $this->newsModel->getAll(null, $keyword);
+        $newsList = $this->newsModel->getAll(null, $keyword, true);
 
         $this->render('frontend/news-list', [
             'pageTitle' => 'Berita & Pengumuman BAAK',
@@ -44,7 +44,7 @@ class NewsController extends Controller {
     }
 
     public function show($slug) {
-        $news = $this->newsModel->getBySlug($slug);
+        $news = $this->newsModel->getBySlug($slug, true);
 
         if (!$news) {
             http_response_code(404);
@@ -113,7 +113,8 @@ class NewsController extends Controller {
             'slug'            => $slug,
             'content'         => $content,
             'thumbnail_image' => $thumbnailPath,
-            'created_by'      => $_SESSION['admin_id'] ?? null
+            'created_by'      => $_SESSION['admin_id'] ?? null,
+            'is_active'       => isset($_POST['is_active']) ? 1 : 0
         ]);
 
         regenerateCsrfToken();
@@ -188,7 +189,8 @@ class NewsController extends Controller {
             'title'           => $title,
             'slug'            => $slug,
             'content'         => $content,
-            'thumbnail_image' => $thumbnailPath
+            'thumbnail_image' => $thumbnailPath,
+            'is_active'       => isset($_POST['is_active']) ? 1 : 0
         ]);
 
         regenerateCsrfToken();

@@ -14,3 +14,7 @@ $scriptDir = rtrim($scriptDir, '/');
 define('BASE_URL', $protocol . $host . $scriptDir . '/');
 define('BASE_PATH', $scriptDir);
 define('APP_ENV', getenv('APP_ENV') ?: 'development');
+
+// Situs RPS (Rencana Pembelajaran Semester) — PRD No.12.
+// Link keluar terbuka di tab baru. Sesuaikan ke URL resmi RPS kampus.
+define('RPS_URL', getenv('RPS_URL') ?: 'https://rps.politekniknest.ac.id/');

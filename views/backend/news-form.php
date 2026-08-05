@@ -25,6 +25,13 @@
                            placeholder="Masukkan judul berita..." required>
                 </div>
 
+                <div class="form-check mb-4">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
+                           <?= !isset($news) || (int)($news['is_active'] ?? 1) === 1 ? 'checked' : '' ?>>
+                    <label class="form-check-label fw-bold" for="is_active">Publikasikan</label>
+                    <div class="form-text">Centang agar berita tampil di publik (beranda & katalog). Kosongkan untuk menyimpan sebagai draft.</div>
+                </div>
+
                 <div class="mb-3">
                     <label for="thumbnail_image" class="form-label fw-bold">Gambar Thumbnail (Opsional)</label>
                     <input type="file" class="form-control" id="thumbnail_image" name="thumbnail_image"
@@ -49,7 +56,7 @@
                 <div class="d-flex justify-content-end gap-2">
                     <a href="<?= BASE_URL ?>admin/news" class="btn btn-secondary">Batal</a>
                     <button type="submit" class="btn btn-success btn-submit">
-                        <i class="bi bi-save"></i> <?= isset($news) ? 'Update Berita' : 'Simpan & Publikasikan' ?>
+                        <i class="bi bi-save"></i> <?= isset($news) ? 'Update Berita' : 'Simpan Berita' ?>
                     </button>
                 </div>
             </form>

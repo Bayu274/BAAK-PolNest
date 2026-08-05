@@ -50,6 +50,10 @@ if (!function_exists('ensureAppReady')) {
             $tables = $db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
 
             if (in_array('admin_users', $tables, true)) {
+                // Instalasi lama: pastikan kolom tambahan (email, is_active,
+                // last_login_at) dan news.is_active ada — idempotent, tanpa
+                // menyentuh data. Kolom yang sudah ada tidak diubah.
+                ensureAppSchemaColumns($db);
                 $done = true;
                 return;
             }
@@ -59,7 +63,10 @@ if (!function_exists('ensureAppReady')) {
                 "CREATE TABLE `admin_users` (
                     `id` int(11) NOT NULL AUTO_INCREMENT,
                     `username` varchar(50) NOT NULL,
+                    `email` varchar(100) DEFAULT NULL,
                     `password` varchar(255) NOT NULL,
+                    `is_active` tinyint(1) NOT NULL DEFAULT 1,
+                    `last_login_at` timestamp NULL DEFAULT NULL,
                     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
                     PRIMARY KEY (`id`),
                     UNIQUE KEY `username` (`username`)
@@ -88,6 +95,7 @@ if (!function_exists('ensureAppReady')) {
                     `created_by` int(11) DEFAULT NULL,
                     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
                     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+                    `is_active` tinyint(1) NOT NULL DEFAULT 1,
                     PRIMARY KEY (`id`),
                     UNIQUE KEY `slug` (`slug`),
                     KEY `idx_created_at` (`created_at`),
@@ -149,6 +157,47 @@ if (!function_exists('ensureAppReady')) {
             error_log('Auto-setup gagal: ' . $e->getMessage());
             // Tidak melempar — alur aplikasi tetap berjalan; getDbConnection()
             // akan menampilkan pesan error yang ramah jika database tidak ada.
+        }
+    }
+}
+
+if (!function_exists('ensureAppSchemaColumns')) {
+    /**
+     * Auto-upgrade skema untuk instalasi lama: menambahkan kolom baru bila belum
+     * ada (idempotent, tidak menyentuh data). Kolom yang gagal ditambahkan tidak
+     * menghentikan aplikasi — hanya dicatat ke error log.
+     */
+    function ensureAppSchemaColumns(PDO $db): void {
+        $dbname = $db->query('SELECT DATABASE()')->fetchColumn();
+
+        $needed = [
+            'admin_users' => [
+                'email'         => "ADD COLUMN `email` varchar(100) DEFAULT NULL AFTER `username`",
+                'is_active'     => "ADD COLUMN `is_active` tinyint(1) NOT NULL DEFAULT 1 AFTER `password`",
+                'last_login_at' => "ADD COLUMN `last_login_at` timestamp NULL DEFAULT NULL AFTER `is_active`",
+            ],
+            'news' => [
+                'is_active' => "ADD COLUMN `is_active` tinyint(1) NOT NULL DEFAULT 1 AFTER `updated_at`",
+            ],
+        ];
+
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?"
+        );
+
+        foreach ($needed as $table => $columns) {
+            foreach ($columns as $column => $alter) {
+                try {
+                    $stmt->execute([$dbname, $table, $column]);
+                    if ((int) $stmt->fetchColumn() === 0) {
+                        $db->exec("ALTER TABLE `{$table}` {$alter}");
+                        logInfo("Auto-upgrade skema: kolom {$table}.{$column} ditambahkan.");
+                    }
+                } catch (Throwable $e) {
+                    error_log("Auto-upgrade skema gagal ({$table}.{$column}): " . $e->getMessage());
+                }
+            }
         }
     }
 }

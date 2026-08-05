@@ -32,7 +32,10 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `admin_users` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `username` varchar(50) NOT NULL,
+        `email` varchar(100) DEFAULT NULL,
         `password` varchar(255) NOT NULL,
+        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+        `last_login_at` timestamp NULL DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
         PRIMARY KEY (`id`),
         UNIQUE KEY `username` (`username`)

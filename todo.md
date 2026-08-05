@@ -2,10 +2,10 @@
 
 > **Dokumen:** Laporan Status & Rencana Teknis Lengkap
 > **Proyek:** Portal Informasi BAAK — Politeknik Nest, Sukoharjo
-> **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 31 Juli 2026
+> **Dibuat:** 22 Juli 2026 | **Terakhir diperbarui:** 05 Agustus 2026
 > **Referensi:** PRD.md v4.0 (Final/Baseline), Pembagian_Tugas_Branch_GitHub.md
 > **PIC Klien:** Pak Dimas Pamilih
-> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) + Phase 15 (Fix Login Admin) + Phase 16 (Legacy MD5 + Auto-Upgrade) SELESAI
+> **Status:** ✅ Fitur 100% + Security Audit 100% + Post-Audit Fixes SELESAI — Phase 9A–9D (50 task) + Phase 10 (7 task) SEMUA DIPERBAIKI + Phase 11–13 (Katalog Berita, Layanan BAAK, Template CSV & Panduan XAMPP) + Phase 14 (Design System Frontend) + Phase 15 (Fix Login Admin) + Phase 16 (Legacy MD5 + Auto-Upgrade) + Phase 17 (Sinkronisasi Update 3 Agustus & Sisa Tugas: RPS Link, Sidebar Responsive, Kolom Akun Admin, Draft Berita) SELESAI
 
 ---
 
@@ -59,6 +59,12 @@ Audit menyeluruh ke seluruh codebase (34 file PHP, 12 backend views, 6 frontend 
 - logError() dipanggil sebelum logger loaded → ganti ke error_log()
 - storage/backups/.htaccess belum ada → dibuat
 - Admin password hash di schema → warning ditambah di README
+
+**Update 3 Agustus 2026 (teman tim — disinkronkan 5 Agustus):**
+- Bayu San (`c1d4eb4`): auto-setup DB/tabel/admin (`config/setup.php` + `ensureAppReady()`), normalisasi tautan rich text (`sanitizeHtmlContent` cache + `normalizeRichContentLinks`), atomic swap CSV via staging table reguler + recovery, `fgetcsv` null, layout frontend di 404, dummy CSV.
+- KaYeYe (`afe8831`): hapus PDF upload test dari tracking (sudah di .gitignore), tambah dump debug `current_*.txt`.
+
+**Phase 17 (5 Agustus 2026, sudah selesai):** Sisa tugas dituntaskan — PRD No.12 Situs RPS (link keluar via `RPS_URL`), AUDIT-L11 sidebar backend responsive (offcanvas mobile), AUDIT-L12 kolom akun admin (`email`/`is_active`/`last_login_at` + cek login + auto-upgrade skema), AUDIT-L13 draft berita (`news.is_active` + filter publik + UI). Detail di §8.9.
 
 ---
 
@@ -141,7 +147,8 @@ controllers/ → models/ → views/
 | `config/constants.php` | 13 | BASE_URL, BASE_PATH, APP_ENV | ✅ Host validation ditambahkan |
 | `config/database.php` | 34 | PDO singleton, getDbConnection() | ✅ Env vars + error_log fix |
 | `config/logger.php` | 46 | logError, logInfo, logWarning | ✅ Log injection fix |
-| `config/security.php` | 229 | CSRF, rate limit, CSP nonce, e(), HTMLPurifier | ✅ CSP + prepared stmts fix |
+| `config/security.php` | 266 | CSRF, rate limit, CSP nonce, e(), HTMLPurifier, sanitizeHtmlContent + cache, normalizeRichContentLinks | ✅ CSP + prepared stmts fix + link normalization |
+| `config/setup.php` | 203 | Auto-setup DB/tabel/admin + auto-upgrade kolom (ensureAppSchemaColumns) | ✅ Baru (3 Agu) + upgrade kolom |
 | `core/Controller.php` | 67 | Base class: render(), requireLogin(), jsonResponse() | ✅ |
 | `core/Router.php` | 53 | Custom router, {param} wildcards | ✅ |
 | `controllers/AuthController.php` | 64 | Login, logout, rate limit, session regenerate | ✅ POST-only logout + session username fix |
@@ -178,12 +185,14 @@ controllers/ → models/ → views/
 |------|-------|--------|--------|
 | `assets/js/search-dosen.js` | 128 | AJAX search, AbortController, loading state | ✅ |
 
-### SQL (3)
+### SQL (5)
 | File | Fungsi | Status |
-|------|--------|--------|
-| `schema_polinest_baak.sql` | Schema lengkap (CREATE TABLE + indexes + constraints) | ✅ |
+|------|-------|--------|
+| `schema_polinest_baak.sql` | Schema lengkap (CREATE TABLE + indexes + constraints) | ✅ + kolom admin_users & news |
 | `migrations/001_lower_existing_data.sql` | Lowercase existing student_advisors data | ✅ |
 | `migrations/002_add_pages_title.sql` | Tambah kolom `title` ke pages_content (idempotent) | ✅ |
+| `migrations/003_admin_users_extra.sql` | Tambah kolom `email`, `is_active`, `last_login_at` ke admin_users (idempotent) | ✅ |
+| `migrations/004_news_is_active.sql` | Tambah kolom `is_active` ke news (draft/publikasi, idempotent) | ✅ |
 
 ### Dokumentasi (6)
 | File | Isi | Status |
@@ -210,6 +219,8 @@ controllers/ → models/ → views/
 | `storage/logs/` | Log file harian (.log) |
 | `config/` | Database credentials (via env vars), security config |
 | `dummy.csv` | Contoh CSV untuk testing |
+| `dummy_dosen_pembimbing.csv` | Dummy data dosen pembimbing (22 baris, 3 Agu) |
+| `current_constants.txt`, `current_controller.txt`, `current_security.txt` | Dump debug KaYeYe (3 Agu) |
 | `Alur Sistem (Flow Chart Teknis).txt` | Flow chart 2 alur utama |
 | `struktur-folder.txt` | Struktur folder |
 
@@ -232,7 +243,7 @@ controllers/ → models/ → views/
 | 9 | Form Rencana Studi (KRS) | §6 | ✅ Selesai | Template unduhan, bukan transaksional |
 | 10 | Form Cuti | §6 | ✅ Selesai | Template unduhan |
 | 11 | Form Mengundurkan Diri | §6 | ✅ Selesai | Template unduhan |
-| 12 | Situs RPS (link) | §6 | ⚠️ Partial | Link ada di jadwal.php tapi arah ke admin/files |
+| 12 | Situs RPS (link) | §6 | ✅ Selesai | Kartu link keluar di jadwal.php → `RPS_URL` (konstanta + env var) |
 | 13 | Buku Pedoman Akademik | §6 | ✅ Selesai | PDF unduhan, kategori `panduan_ta` |
 | 14 | Jadwal Pelayanan BAAK | §6 | ✅ Selesai | PDF unduhan + info kontak di jadwal.php |
 | 15 | Form Pindah Kelas | §6 | ✅ Selesai | Template unduhan |
@@ -253,7 +264,7 @@ controllers/ → models/ → views/
 | Requirement | PRD § | Status | Keterangan |
 |-------------|-------|--------|------------|
 | SQL Injection Prevention | §11 | ✅ | Semua query pakai Prepared Statements |
-| XSS Prevention | §11 | ⚠️ | HTMLPurifier di save, tapi output belum 100% aman |
+| XSS Prevention | §11 | ✅ | HTMLPurifier di save + sanitize saat render + link normalization (3 Agu) |
 | Backend Access Control | §11 | ✅ | requireLogin() di semua admin controller |
 | CSRF Tokens | §11 | ✅ | Token + regen setelah submit |
 | Password Hashing | §11 | ✅ | password_hash() + password_verify() |
@@ -647,21 +658,21 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 
 ### Fitur yang Implementasi Tapi Ada Bug
 
-| Fitur | Bug | Severity |
-|-------|-----|----------|
-| CKEditor di admin | Diblokir oleh CSP | CRITICAL |
-| Semua inline script backend | Diblokir oleh CSP tanpa nonce | CRITICAL |
-| Halaman detail publik | Stored XSS — raw output tanpa sanitasi | CRITICAL |
-| Database credentials | Hardcoded root tanpa password | CRITICAL |
-| Logout | Bisa di-trigger via GET (CSRF) | HIGH |
-| Admin panel | Tidak responsive di mobile | HIGH |
+| Fitur | Bug | Severity | Status |
+|-------|-----|----------|--------|
+| CKEditor di admin | Diblokir oleh CSP | CRITICAL | ✅ Fixed Phase 9A-1 |
+| Semua inline script backend | Diblokir oleh CSP tanpa nonce | CRITICAL | ✅ Fixed Phase 9A-2 |
+| Halaman detail publik | Stored XSS — raw output tanpa sanitasi | CRITICAL | ✅ Fixed Phase 9A-3/4 + 3 Agu |
+| Database credentials | Hardcoded root tanpa password | CRITICAL | ✅ Fixed Phase 9A-5 |
+| Logout | Bisa di-trigger via GET (CSRF) | HIGH | ✅ Fixed Phase 9B-2 |
+| Admin panel | Tidak responsive di mobile | HIGH | ✅ Fixed Phase 17-3 (offcanvas) |
 
 ### Open Decisions (dari Pembagian_Tugas_Branch_GitHub.md §5)
 
 | No | Keputusan | Status | Keterangan |
 |----|-----------|--------|------------|
 | 1 | Multi-advisor response format | ✅ Sudah ditangani | findByNimAndName() return array |
-| 2 | Rich text HTML sanitization | ⚠️ Belum 100% | HTMLPurifier di save, tapi output rendering belum aman |
+| 2 | Rich text HTML sanitization | ✅ Sudah ditangani | HTMLPurifier di save + sanitize saat render (`sanitizeHtmlContent`) + `normalizeRichContentLinks` (3 Agu) |
 | 3 | Rate limit cleanup mechanism | ✅ Sudah ditangani | Inline + global cleanup |
 
 ---
@@ -779,9 +790,9 @@ Dev 3 mengerjakan 4 phase perbaikan yang sudah terdokumentasi lengkap di `test.m
 | 9D-8 | Log hanya path (tanpa query string) | `config/logger.php:22` | AUDIT-L8 | ✅ Dilakukan di 9B-3 |
 | 9D-9 | Hapus Bootstrap JS dari login page | `views/frontend/login.php:43` | AUDIT-L9 | ✅ |
 | 9D-10 | Standarisasi route definitions | `index.php` | AUDIT-L10 | ✅ Pertahankan (news routes butuh `$_GET`, pattern berbeda tapi functional) |
-| 9D-11 | Buat sidebar backend responsive (collapsible) | `views/backend/layout.php:11` | AUDIT-L11 | ⏭️ Skip — complex UI change |
-| 9D-12 | Evaluasi tambah kolom `admin_users` (email, last_login) | `schema_polinest_baak.sql` | AUDIT-L12 | ⏭️ Skip — schema change, future consideration |
-| 9D-13 | Evaluasi tambah kolom `news.is_active` | `schema_polinest_baak.sql` | AUDIT-L13 | ⏭️ Skip — schema change, future consideration |
+| 9D-11 | Buat sidebar backend responsive (collapsible) | `views/backend/layout.php:11` | AUDIT-L11 | ✅ Selesai Phase 17-3 (offcanvas mobile) |
+| 9D-12 | Evaluasi tambah kolom `admin_users` (email, last_login) | `schema_polinest_baak.sql` | AUDIT-L12 | ✅ Selesai Phase 17-4 (email, is_active, last_login_at) |
+| 9D-13 | Evaluasi tambah kolom `news.is_active` | `schema_polinest_baak.sql` | AUDIT-L13 | ✅ Selesai Phase 17-5 (draft/publikasi) |
 | 9D-14 | Tambah warning admin password hash di README | `README.md` | AUDIT-L14 | ✅ Warning ditambah di Default Credentials |
 | 9D-15 | Pastikan `logWarning()` selalu ter-defined | `views/frontend/news-detail.php:28` | AUDIT-L15 | ✅ Sudah ter-defined via `function_exists()` guard |
 
@@ -930,6 +941,43 @@ Lalu login dengan `admin` / `admin` dan **segera ganti password**.
 
 ---
 
+### 8.9 Phase 17 — Sinkronisasi Update 3 Agustus + Sisa Tugas ✅ SELESAI
+
+> **UPDATE 05 Agustus 2026:** Dua hal:
+> 1. **Sinkronisasi dokumen** dengan update teman tim tanggal 3 Agustus (commit `c1d4eb4` Bayu San & `afe8831` KaYeYe) yang belum tercatat di dokumen ini.
+> 2. **Menyelesaikan semua sisa tugas** yang sebelumnya ditandai Partial/Skip (PRD No.12, AUDIT-L11/L12/L13).
+
+#### Rekap Update Teman Tim (3 Agustus 2026) — sudah disinkronkan
+
+| Perubahan | File | Keterangan |
+|-----------|------|------------|
+| Auto-setup DB + tabel + akun admin | `config/setup.php` (baru), `index.php` | `ensureAppReady()` idempotent tiap request; seed admin/admin bcrypt runtime |
+| Normalisasi link konten rich text | `config/security.php` | `sanitizeHtmlContent()` + cache md5 per request + `normalizeRichContentLinks()` (href tanpa protokol diberi https://, link eksternal target=_blank rel=noopener) |
+| Layout frontend pada halaman 404/detail | `controllers/NewsController.php`, `PageController.php` | Param `'frontend'` di `render()` |
+| Atomic swap CSV staging (TEMPORARY → reguler) | `models/Advisor.php` | `RENAME TABLE` dua tabel satu perintah + recovery; catatan: TEMPORARY tidak bisa di-RENAME ke tabel permanen |
+| `fgetcsv` length `-1` → `null` | `controllers/AdvisorController.php` | Setara (tanpa batas) |
+| Dummy data dosen pembimbing | `dummy_dosen_pembimbing.csv` (baru) | 22 baris, format validasi |
+| Chore: hapus PDF upload test dari tracking | `afe8831` | Sudah masuk .gitignore; file `current_*.txt` ditambahkan (dump debug) |
+
+#### Tugas yang Diselesaikan (05 Agustus 2026)
+
+| No | Task | File | Status |
+|----|------|------|--------|
+| 17-1 | Perbaiki PRD No.12 — Situs RPS: konstanta `RPS_URL` (default + env var `RPS_URL`), kartu link keluar di halaman Jadwal & Pedoman | `config/constants.php`, `views/frontend/jadwal.php`, `.env.example` | ✅ |
+| 17-2 | Update README — daftar migration 003 & 004 | `README.md` | ✅ |
+| 17-3 | AUDIT-L11 — Sidebar backend responsive: sidebar desktop (`d-none d-lg-block`) + offcanvas mobile + topbar hamburger; item menu di-loop dari array `$sidebarItems` (tidak duplikat) | `views/backend/layout.php` | ✅ |
+| 17-4 | AUDIT-L12 — Kolom `admin_users`: `email`, `is_active`, `last_login_at` (schema + migration idempotent + auto-upgrade `ensureAppSchemaColumns()`); `AuthController` cek `is_active` saat login (default aktif untuk DB lama) + `Admin::updateLastLogin()` (try/catch aman DB lama) | `schema_polinest_baak.sql`, `migrations/003_admin_users_extra.sql` (baru), `config/setup.php`, `models/Admin.php`, `controllers/AuthController.php`, `tools/reset_admin_password.php` | ✅ |
+| 17-5 | AUDIT-L13 — Kolom `news.is_active` (draft/publikasi): schema + migration idempotent + auto-upgrade; `News::getAll()/getBySlug()` param `$activeOnly` (publik hanya berita aktif; admin & generateSlug tetap lihat semua); checkbox "Publikasikan" di form; badge Status Aktif/Draft di list; `HomeController` & katalog hanya berita aktif | `schema_polinest_baak.sql`, `migrations/004_news_is_active.sql` (baru), `config/setup.php`, `models/News.php`, `controllers/NewsController.php`, `controllers/HomeController.php`, `views/backend/news-form.php`, `views/backend/news-list.php` | ✅ |
+
+**Catatan teknis Phase 17:**
+- **Auto-upgrade kolom** (`ensureAppSchemaColumns`): instalasi lama otomatis mendapat kolom baru saat request berikutnya (cek `INFORMATION_SCHEMA.COLUMNS`, per kolom, try/catch per kolom) — tanpa perlu import manual, dan tidak mengunci aplikasi jika gagal.
+- **Keamanan akun nonaktif**: login akun `is_active = 0` ditolak dengan pesan generik (tidak membocorkan bahwa akun ada). Kolom belum ada di DB lama → dianggap aktif (`?? 1`), tidak mengunci akses.
+- **`updateLastLogin()`** dibungkus try/catch — DB lama tanpa kolom tidak crash, hanya error_log.
+- **Backward-compatible**: `News::getAll()` / `getBySlug()` tanpa argumen baru berperilaku persis seperti sebelumnya (admin list & generateSlug tidak berubah).
+- UI pengelolaan akun admin (membuat admin kedua, edit email, toggle nonaktif) **belum ada** — pengaturan via SQL/phpMyAdmin. Disarankan sebagai fitur masa depan.
+
+---
+
 ### Timeline Estimasi
 
 | Phase | Jam | Dependencies | Target |
@@ -946,7 +994,8 @@ Lalu login dengan `admin` / `admin` dan **segera ganti password**.
 | Phase 14 — Design System Frontend | ~2–3 jam | Phase 1–13 | ✅ Selesai |
 | Phase 15 — Fix Login Admin | ~0.5 jam | — | ✅ Selesai |
 | Phase 16 — Legacy MD5 + Auto-Upgrade | ~0.5 jam | Phase 15 | ✅ Selesai |
-| **Total Phase 9–16** | **16–23 jam** | — | — |
+| Phase 17 — Sinkronisasi + Sisa Tugas | ~2 jam | Phase 1–16 | ✅ Selesai |
+| **Total Phase 9–17** | **18–25 jam** | — | — |
 
 ### Total Estimasi Proyek
 
@@ -958,7 +1007,8 @@ Lalu login dengan `admin` / `admin` dan **segera ganti password**.
 | AI Assistant (Phase 5–8) | ~9–13 jam (sudah selesai) |
 | Phase 9 — Security Audit Fixes | 8–12 jam (sudah selesai) |
 | Phase 10 — Post-Audit Bug Fixes | ~0.5 jam (sudah selesai) |
-| **Grand Total** | **52–60.5 jam** |
+| Phase 17 — Sinkronisasi & Sisa Tugas | ~2 jam (sudah selesai) |
+| **Grand Total** | **54–62.5 jam** |
 
 ---
 
@@ -1031,7 +1081,7 @@ Lalu login dengan `admin` / `admin` dan **segera ganti password**.
 | `regenerateCsrfToken()` | ✅ | Regen setelah form submit |
 | `verifyCsrfToken()` | ✅ | hash_equals() — timing-safe |
 | `generateCspNonce()` | ✅ | Nonce 32-byte hex per session |
-| `emit_security_headers()` | ⚠️ | CSP perlu perbaikan (blokir CKEditor) |
+| `emit_security_headers()` | ✅ | CSP nonce + whitelist CKEditor/Google Fonts + HSTS conditional |
 | `checkRateLimit()` | ✅ | Atomic upsert, fail-closed |
 | `e()` | ✅ | htmlspecialchars() wrapper |
 | `sanitizeHtmlContent()` | ✅ | HTMLPurifier dengan fallback |
@@ -1114,11 +1164,16 @@ User → Form submit → AdvisorController::processImport()
   8. Max-row limit (50,000)
   9. Deduplication per NIM+type
   10. Backup current data → CSV file (keep last 5)
-  11. Atomic swap via TEMPORARY TABLE:
-      a. CREATE TEMPORARY TABLE LIKE student_advisors
-      b. INSERT all rows (with normalize)
-      c. DROP TABLE student_advisors
-      d. RENAME tmp_student_advisors TO student_advisors
+  11. Atomic swap via staging table REGULER (sejak 3 Agu — TEMPORARY
+      tidak bisa di-RENAME menjadi tabel permanen):
+      a. DROP TABLE IF EXISTS tmp_student_advisors
+      b. CREATE TABLE tmp_student_advisors LIKE student_advisors
+      c. INSERT all rows (dengan normalize)
+      d. RENAME TABLE student_advisors TO student_advisors_old,
+                   tmp_student_advisors TO student_advisors   (satu perintah)
+      e. DROP TABLE IF EXISTS student_advisors_old
+      Recovery jika gagal: kembalikan student_advisors_old jika tabel utama hilang,
+      hapus sisa staging — data tidak pernah hilang.
   12. Regenerate CSRF token
   13. Redirect with status=success
 ```

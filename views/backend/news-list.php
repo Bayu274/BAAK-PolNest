@@ -16,7 +16,8 @@
                         <tr>
                             <th scope="col" width="5%" class="text-center">No</th>
                             <th scope="col">Judul Berita</th>
-                            <th scope="col" width="20%">Tanggal Publikasi</th>
+                            <th scope="col" width="12%" class="text-center">Status</th>
+                            <th scope="col" width="18%">Tanggal Publikasi</th>
                             <th scope="col" width="20%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -27,6 +28,13 @@
                                     <td class="text-center fw-bold text-secondary"><?= $no++ ?></td>
                                     <td>
                                         <span class="fw-medium"><?= e($item['title']) ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ((int)($item['is_active'] ?? 1) === 1): ?>
+                                            <span class="badge bg-success"><i class="bi bi-eye me-1"></i>Aktif</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary"><i class="bi bi-eye-slash me-1"></i>Draft</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <span class="badge bg-info text-dark">
@@ -50,7 +58,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">
+                                <td colspan="5" class="text-center py-4 text-muted">
                                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                                     Belum ada berita yang dipublikasikan.
                                 </td>

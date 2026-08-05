@@ -32,6 +32,8 @@ mysql -u root -p polinest_baak < schema_polinest_baak.sql
 # 3. Jalankan migration (jika ada data existing)
 mysql -u root -p polinest_baak < migrations/001_lower_existing_data.sql
 mysql -u root -p polinest_baak < migrations/002_add_pages_title.sql
+mysql -u root -p polinest_baak < migrations/003_admin_users_extra.sql
+mysql -u root -p polinest_baak < migrations/004_news_is_active.sql
 
 # 4. Setup directory permissions
 chmod -R 755 storage/

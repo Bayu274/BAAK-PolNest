@@ -66,6 +66,21 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <a href="<?= e(RPS_URL) ?>" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-100 rounded-3">
+                            <div class="card-body d-flex align-items-center p-3">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; flex-shrink: 0;">
+                                    <i class="bi bi-box-arrow-up-right fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">Situs RPS (Rencana Pembelajaran)</div>
+                                    <small class="text-muted">Katalog RPS seluruh mata kuliah — tautan eksternal</small>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
 
             <div class="card border-0 bg-primary bg-opacity-10 rounded-3 mb-4">

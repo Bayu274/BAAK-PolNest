@@ -58,9 +58,18 @@ class AuthController extends Controller
             }
 
             if ($authenticated) {
+                // Cek status akun aktif (is_active). Kolom mungkin belum ada di
+                // database lama — default 1 (aktif) supaya tidak mengunci akses.
+                if ((int)($admin['is_active'] ?? 1) !== 1) {
+                    logWarning("Login ditolak: akun admin nonaktif (admin_id: {$admin['id']})");
+                    $this->render('frontend/login', ['error' => 'Username atau password salah']);
+                    return;
+                }
+
                 session_regenerate_id(true);
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $admin['username'];
+                $adminModel->updateLastLogin((int)$admin['id']);
                 header('Location: ' . BASE_URL . 'dashboard');
                 exit;
             }
