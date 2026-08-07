@@ -7,7 +7,7 @@
             </div>
         <?php elseif ($_GET['status'] === 'deleted'): ?>
             <div class="alert alert-info" role="alert">
-                <i class="bi bi-trash-fill"></i> File berhasil dihapus.
+                <i class="bi bi-trash-fill"></i> File berhasil dihapus (data dan file fisik di server).
             </div>
         <?php endif; ?>
     <?php endif; ?>
@@ -42,7 +42,7 @@
                         <div class="mb-3">
                             <label for="document_file" class="form-label fw-bold">Pilih File (PDF / DOCX)</label>
                             <input type="file" name="document_file" id="document_file" class="form-control" accept=".pdf,.docx" required>
-                            <div class="form-text text-muted">Maksimal ukuran 10 MB. Mengunggah file pada kategori yang sama akan menonaktifkan file lama secara otomatis.</div>
+                            <div class="form-text text-muted">Maksimal ukuran 10 MB. Anda dapat menyimpan banyak file pada kategori yang sama (minimal 5 file atau lebih).</div>
                         </div>
 
                         <button type="submit" class="btn btn-success w-100 btn-submit"><i class="bi bi-upload"></i> Simpan File</button>
@@ -84,14 +84,14 @@
                                         ?>
                                     </td>
                                     <td>
-                                        <a href="<?= BASE_URL ?>storage/uploads/<?php echo e($file['file_path']); ?>" class="btn btn-sm btn-outline-primary" target="_blank" download>
+                                        <a href="<?= BASE_URL ?>files/download/<?= (int) $file['id']; ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-download"></i>
                                         </a>
 
-                                        <form action="<?= BASE_URL ?>admin/files/delete" method="POST" class="d-inline" onsubmit="return confirm('Hapus file ini?');">
+                                        <form action="<?= BASE_URL ?>admin/files/delete" method="POST" class="d-inline js-delete-form">
                                             <input type="hidden" name="csrf_token" value="<?php echo e($csrf_token); ?>">
                                             <input type="hidden" name="file_id" value="<?php echo e($file['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-submit">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -106,3 +106,18 @@
         </div>
     </div>
 </div>
+<script nonce="<?= generateCspNonce() ?>">
+document.querySelectorAll('.js-delete-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        if (!window.confirm('Hapus file ini? Data dan file fisik di server akan dihapus permanen.')) {
+            event.preventDefault();
+            return;
+        }
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menghapus...';
+        }
+    });
+});
+</script>

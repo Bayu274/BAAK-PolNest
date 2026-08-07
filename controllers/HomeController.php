@@ -5,6 +5,7 @@ if (!defined('BASE_URL')) {
 }
 
 require_once __DIR__ . '/../models/News.php';
+require_once __DIR__ . '/../models/DownloadableFile.php';
 
 class HomeController extends Controller {
 
@@ -20,6 +21,11 @@ class HomeController extends Controller {
     }
 
     public function showJadwal() {
-        $this->render('frontend/jadwal', ['pageTitle' => 'Jadwal & Pedoman BAAK'], 'frontend');
+        $fileModel = new DownloadableFile();
+        $files = $fileModel->getActiveFiles();
+        $this->render('frontend/jadwal', [
+            'pageTitle' => 'Jadwal & Pedoman BAAK',
+            'files' => $files
+        ], 'frontend');
     }
 }

@@ -75,6 +75,7 @@ $fileController = new FileController();
 $router->addRoute('GET', '/admin/files', [$fileController, 'listAdmin']);
 $router->addRoute('POST', '/admin/files/upload', [$fileController, 'store']);
 $router->addRoute('POST', '/admin/files/delete', [$fileController, 'delete']);
+$router->addRoute('GET', '/files/download/{id}', [$fileController, 'download']);
 
 $pageController = new PageController();
 $router->addRoute('GET', '/admin/pages', [$pageController, 'listAdmin']);

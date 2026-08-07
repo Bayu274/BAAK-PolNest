@@ -54,6 +54,10 @@ if (!function_exists('ensureAppReady')) {
                 // last_login_at) dan news.is_active ada — idempotent, tanpa
                 // menyentuh data. Kolom yang sudah ada tidak diubah.
                 ensureAppSchemaColumns($db);
+                // Perbaiki kolom PRIMARY KEY yang tidak AUTO_INCREMENT
+                // (instalasi lama: id selalu 0 → upload/impor gagal,
+                //  dan todos delete "ID File tidak valid").
+                ensureTableAutoIncrement($db);
                 $done = true;
                 return;
             }
@@ -179,6 +183,14 @@ if (!function_exists('ensureAppSchemaColumns')) {
             'news' => [
                 'is_active' => "ADD COLUMN `is_active` tinyint(1) NOT NULL DEFAULT 1 AFTER `updated_at`",
             ],
+            'downloadable_files' => [
+                'file_category' => "ADD COLUMN `file_category` varchar(100) NOT NULL AFTER `id`",
+                'file_name'     => "ADD COLUMN `file_name` varchar(255) NOT NULL AFTER `file_category`",
+                'file_path'     => "ADD COLUMN `file_path` varchar(255) NOT NULL AFTER `file_name`",
+                'is_active'     => "ADD COLUMN `is_active` tinyint(1) NOT NULL DEFAULT 1 AFTER `file_path`",
+                'uploaded_by'   => "ADD COLUMN `uploaded_by` int(11) DEFAULT NULL AFTER `is_active`",
+                'uploaded_at'   => "ADD COLUMN `uploaded_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `uploaded_by`",
+            ],
         ];
 
         $stmt = $db->prepare(
@@ -197,6 +209,52 @@ if (!function_exists('ensureAppSchemaColumns')) {
                 } catch (Throwable $e) {
                     error_log("Auto-upgrade skema gagal ({$table}.{$column}): " . $e->getMessage());
                 }
+            }
+        }
+    }
+}
+
+if (!function_exists('ensureTableAutoIncrement')) {
+    /**
+     * Auto-fix untuk instalasi lama yang kolom PRIMARY KEY-nya tidak
+     * AUTO_INCREMENT (mis. tabel dibuat oleh setup versi awal atau impor
+     * dump manual tanpa bagian MODIFY ... AUTO_INCREMENT).
+     *
+     * Akibat bila tidak diperbaiki: INSERT tanpa id eksplisit selalu memakai
+     * id = 0 → baris pertama tersimpan dengan id 0, baris berikutnya gagal
+     * "Duplicate entry '0' for key 'PRIMARY'" (upload/impor CSV mogok), dan
+     * semua operasi berbasis id (hapus/unduh) menolak id 0.
+     *
+     * Alur (idempotent, aman dijalankan tiap request):
+     *   1. Cek via INFORMATION_SCHEMA apakah kolom id sudah auto_increment.
+     *   2. Bila belum: beri id unik berurutan ke semua baris (menggantikan
+     *      nilai 0 yang tersimpan), lalu MODIFY menjadi AUTO_INCREMENT.
+     *      Tidak menghapus/mengubah data lain.
+     */
+    function ensureTableAutoIncrement(PDO $db): void {
+        $tables = ['admin_users', 'downloadable_files', 'news', 'pages_content', 'rate_limit_attempts', 'student_advisors'];
+
+        foreach ($tables as $table) {
+            try {
+                $stmt = $db->prepare(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'id' AND EXTRA LIKE '%auto_increment%'"
+                );
+                $stmt->execute([$table]);
+
+                if ((int) $stmt->fetchColumn() > 0) {
+                    continue; // sudah benar
+                }
+
+                // Beri id unik berurutan dulu (row id=0 yang tersimpan di masa
+                // lalu bisa jadi tidak unik/aneh — urutkan dari id lama).
+                $db->exec("SET @baak_rn := 0;");
+                $db->exec("UPDATE `{$table}` SET `id` = (@baak_rn := @baak_rn + 1) ORDER BY `id`");
+                $db->exec("ALTER TABLE `{$table}` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT");
+
+                logInfo("Auto-fix: {$table}.id tidak AUTO_INCREMENT — sudah diperbaiki.");
+            } catch (Throwable $e) {
+                error_log("ensureTableAutoIncrement gagal ({$table}): " . $e->getMessage());
             }
         }
     }
