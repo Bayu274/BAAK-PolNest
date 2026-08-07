@@ -53,7 +53,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 pt-0">
-                    <a href="<?= BASE_URL ?>admin/import-csv" class="text-decoration-none small">Import CSV <i class="bi bi-arrow-right"></i></a>
+                    <a href="<?= BASE_URL ?>admin/data-pembimbing" class="text-decoration-none small">Kelola data <i class="bi bi-arrow-right"></i></a>
                 </div>
             </div>
         </div>
@@ -123,8 +123,11 @@
                         <a href="<?= BASE_URL ?>admin/files" class="btn btn-outline-info text-start">
                             <i class="bi bi-cloud-arrow-up me-2"></i>Upload Dokumen
                         </a>
-                        <a href="<?= BASE_URL ?>admin/import-csv" class="btn btn-outline-warning text-start">
-                            <i class="bi bi-upload me-2"></i>Import Data CSV
+                        <a href="<?= BASE_URL ?>admin/data-pembimbing" class="btn btn-outline-warning text-start">
+                            <i class="bi bi-people me-2"></i>Buka Data Pembimbing
+                        </a>
+                        <a href="<?= BASE_URL ?>admin/import-csv" class="btn btn-outline-danger text-start">
+                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Import Data CSV
                         </a>
                     </div>
                 </div>

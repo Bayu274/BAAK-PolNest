@@ -55,6 +55,105 @@ class Advisor {
     }
 
     /**
+     * Statistik ringkas data pembimbing (total baris, mahasiswa unik,
+     * dosen unik, dan waktu import terakhir). Dipakai untuk halaman review admin.
+     *
+     * @return array{total:int, students:int, advisors:int, last_import:?string}
+     */
+    public function getStats(): array {
+        $stats = ['total' => 0, 'students' => 0, 'advisors' => 0, 'last_import' => null];
+        try {
+            $stats['total']       = (int) $this->db->query("SELECT COUNT(*) FROM student_advisors")->fetchColumn();
+            $stats['students']    = (int) $this->db->query("SELECT COUNT(DISTINCT nim) FROM student_advisors")->fetchColumn();
+            $stats['advisors']    = (int) $this->db->query("SELECT COUNT(DISTINCT advisor_name) FROM student_advisors")->fetchColumn();
+            $last                 = $this->db->query("SELECT MAX(imported_at) FROM student_advisors")->fetchColumn();
+            $stats['last_import'] = $last ?: null;
+        } catch (PDOException $e) {
+            error_log("Database Error di Advisor::getStats -> " . $e->getMessage());
+        }
+        return $stats;
+    }
+
+    /**
+     * Menghitung jumlah baris yang cocok dengan filter (keyword + tipe).
+     * Sama persis dengan getRecords() agar nomor halaman konsisten.
+     *
+     * @param array $filters ['keyword' => string|null, 'advisor_type' => string|null]
+     */
+    public function countRecords(array $filters = []): int {
+        [$whereSql, $params] = $this->buildFilterQuery($filters);
+        try {
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM student_advisors {$whereSql}");
+            $stmt->execute($params);
+            return (int) $stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("Database Error di Advisor::countRecords -> " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Menampilkan daftar data pembimbing langsung dari database (real-time)
+     * dengan filter opsional dan pagination. Ordering stabil: nim lalu tipe lalu id.
+     *
+     * @param array $filters ['keyword' => string|null, 'advisor_type' => string|null]
+     * @return array List data, array kosong jika query gagal
+     */
+    public function getRecords(array $filters = [], int $limit = 30, int $offset = 0): array {
+        [$whereSql, $params] = $this->buildFilterQuery($filters);
+        $sql = "SELECT id, nim, student_name, advisor_name, advisor_type, imported_at
+                FROM student_advisors
+                {$whereSql}";
+
+        $sql .= " ORDER BY nim ASC, advisor_type ASC, id ASC LIMIT :limit OFFSET :offset";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->bindValue(':limit', max(1, (int) $limit), PDO::PARAM_INT);
+            $stmt->bindValue(':offset', max(0, (int) $offset), PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Database Error di Advisor::getRecords -> " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Helper query filter bersama supaya getRecords() dan countRecords()
+     * selalu sepakat pada kondisi yang sama (keyword + tipe pembimbing).
+     *
+     * @param array $filters ['keyword' => string|null, 'advisor_type' => string|null]
+     * @return array [string $conditionSql, array $params]
+     */
+    private function buildFilterQuery(array $filters = []): array {
+        $conditions = [];
+        $params     = [];
+
+        $keyword = isset($filters['keyword']) ? trim((string) $filters['keyword']) : '';
+        if ($keyword !== '') {
+            $conditions[] = "(LOWER(nim) LIKE :kw OR LOWER(student_name) LIKE :kw OR LOWER(advisor_name) LIKE :kw)";
+            $params[':kw'] = '%' . $this->normalize($keyword) . '%';
+        }
+
+        $type = isset($filters['advisor_type']) ? trim((string) $filters['advisor_type']) : '';
+        if (in_array($type, ['Wali', 'Magang', 'TA'], true)) {
+            $conditions[]   = "advisor_type = :adv_type";
+            $params[':adv_type'] = $type;
+        }
+
+        $whereSql = "WHERE 1 = 1";
+        if ($conditions !== []) {
+            $whereSql .= " AND " . implode(" AND ", $conditions);
+        }
+
+        return [$whereSql, $params];
+    }
+
+    /**
      * Backup current data to CSV before atomic swap
      */
     private function backupCurrentData(): void {

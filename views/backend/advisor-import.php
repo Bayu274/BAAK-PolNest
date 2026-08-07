@@ -1,7 +1,10 @@
 <div class="container-fluid mt-4">
     <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet"></i> Impor Data Dosen Pembimbing</h5>
+            <a href="<?= BASE_URL ?>admin/data-pembimbing" class="btn btn-sm btn-light">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Data Pembimbing
+            </a>
         </div>
         <div class="card-body">
             

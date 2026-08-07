@@ -20,7 +20,7 @@
         ['href' => BASE_URL . 'admin/news',       'icon' => 'newspaper',          'label' => 'Berita'],
         ['href' => BASE_URL . 'admin/pages',      'icon' => 'file-earmark-text',  'label' => 'Konten Halaman'],
         ['href' => BASE_URL . 'admin/files',      'icon' => 'folder2-open',       'label' => 'Berkas Unduhan'],
-        ['href' => BASE_URL . 'admin/import-csv', 'icon' => 'people',             'label' => 'Data Pembimbing'],
+['href' => BASE_URL . 'admin/data-pembimbing', 'icon' => 'people', 'label' => 'Data Pembimbing'],
     ];
     ?>
     <div class="d-flex">

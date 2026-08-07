@@ -95,6 +95,7 @@ $advisorController = new AdvisorController();
 $router->addRoute('GET', '/pencarian-dosen', [$advisorController, 'showSearchPage']);
 $router->addRoute('POST', '/api/advisors/search', [$advisorController, 'search']);
 $router->addRoute('GET', '/admin/import-csv/template', [$advisorController, 'downloadTemplate']);
+$router->addRoute('GET', '/admin/data-pembimbing', [$advisorController, 'listData']);
 $router->addRoute('GET', '/admin/import-csv', [$advisorController, 'importCsvForm']);
 $router->addRoute('POST', '/admin/import-csv', [$advisorController, 'processImport']);
 

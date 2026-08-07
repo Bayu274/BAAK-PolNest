@@ -99,6 +99,55 @@ class AdvisorController extends Controller {
     }
 
     /**
+     * Menampilkan halaman review Data Pembimbing langsung dari database
+     * (real-time). Admin bisa mengaudit data tersimpan tanpa membuka file CSV.
+     * Menu sidebar "Data Pembimbing" mengarah ke halaman ini; import CSV
+     * tetap terpisah via tombol menuju /admin/import-csv.
+     */
+    public function listData(): void {
+        $this->requireLogin();
+
+        // Pagination: page wajib angka positif, dibatasi agar tidak over-inject.
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $page = max(1, $page);
+
+        $filters = [
+            'keyword'      => isset($_GET['q']) ? mb_substr(trim((string) $_GET['q']), 0, 100) : '',
+            'advisor_type' => '',
+        ];
+
+        $type = isset($_GET['type']) ? trim((string) $_GET['type']) : '';
+        if (in_array($type, ['Wali', 'Magang', 'TA'], true)) {
+            $filters['advisor_type'] = $type;
+        }
+
+        $model   = new Advisor();
+        $perPage = 30;
+
+        $total      = $model->countRecords($filters);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset = ($page - 1) * $perPage;
+
+        $records = $model->getRecords($filters, $perPage, $offset);
+        $stats   = $model->getStats();
+
+        $this->render('backend/advisor-data', [
+            'page_title' => 'Data Pembimbing',
+            'csrf_token' => generateCsrfToken(),
+            'records'    => $records,
+            'stats'      => $stats,
+            'filter'     => $filters,
+            'page'       => $page,
+            'perPage'    => $perPage,
+            'total'      => $total,
+            'totalPages' => $totalPages,
+        ], true);
+    }
+
+    /**
      * Mengunduh template CSV untuk staf BAAK (Phase 13)
      * Hanya admin yang login yang dapat mengunduh.
      */
@@ -244,7 +293,7 @@ class AdvisorController extends Controller {
             $model->truncateAndReload($rows);
             // [2M] Regenerate CSRF token setelah import sukses
             regenerateCsrfToken();
-            header("Location: " . BASE_URL . "admin/import-csv?status=success");
+            header("Location: " . BASE_URL . "admin/data-pembimbing?status=imported");
             exit;
         } catch (Exception $e) {
             $this->importError('Gagal menyimpan data ke database.');
