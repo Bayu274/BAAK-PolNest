@@ -7,8 +7,14 @@ class Page {
         $this->db = getDbConnection();
     }
 
+    // METHOD BARU: Untuk mengambil semua daftar halaman
+    public function getAll() {
+        $stmt = $this->db->query("SELECT id, page_identifier, title, html_content, updated_by, last_updated FROM pages_content ORDER BY page_identifier ASC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getByIdentifier($identifier) {
-        $stmt = $this->db->prepare("SELECT * FROM pages_content WHERE page_identifier = :identifier LIMIT 1");
+        $stmt = $this->db->prepare("SELECT id, page_identifier, title, html_content, updated_by, last_updated FROM pages_content WHERE page_identifier = :identifier LIMIT 1");
         $stmt->execute(['identifier' => $identifier]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -27,5 +33,26 @@ class Page {
             'updated_by'   => $adminId,
             'identifier'   => $identifier
         ]);
+    }
+
+    // METHOD BARU: Untuk menambahkan halaman baru (Create)
+    public function create($identifier, $title, $htmlContent, $adminId) {
+        $stmt = $this->db->prepare("
+            INSERT INTO pages_content (page_identifier, title, html_content, updated_by) 
+            VALUES (:identifier, :title, :html_content, :updated_by)
+        ");
+        
+        return $stmt->execute([
+            'identifier'   => $identifier,
+            'title'        => $title,
+            'html_content' => $htmlContent,
+            'updated_by'   => $adminId
+        ]);
+    }
+
+    // METHOD BARU: Untuk menghapus halaman (Delete)
+    public function delete($identifier) {
+        $stmt = $this->db->prepare("DELETE FROM pages_content WHERE page_identifier = :identifier");
+        return $stmt->execute(['identifier' => $identifier]);
     }
 }

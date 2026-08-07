@@ -1,39 +1,72 @@
-/polinest-baak
-├── /assets                 # Aset statis yang diakses publik
-│   ├── /css
-│   ├── /js
-│   │   └── search-dosen.js # Fetch API logic untuk pencarian AJAX
-│   └── /images
-├── /config                 # Konfigurasi sistem
-│   ├── database.php        # Instansiasi PDO (Strict Prepared Statements)
-│   ├── constants.php       # Base URL & Environment variables
-│   └── security.php        # Fungsi generator CSRF & Rate Limiting IP
-├── /core                   # Mesin utama (Micro-framework buatan sendiri)
-│   ├── Router.php          # Pemandu URL ke Controller (SEO Friendly Handler)
-│   └── Controller.php      # Base class untuk render view & session checking
-├── /controllers            # Logika Aplikasi (Dilarang ada query SQL di sini)
-│   ├── AuthController.php
-│   ├── NewsController.php
-│   ├── PageController.php  
-│   └── AdvisorController.php
-├── /models                 # Operasi Database murni
-│   ├── Admin.php
-│   ├── News.php            
-│   └── Advisor.php         # Query dengan WHERE nim = ? AND student_name = ?
-├── /views                  # Lapisan Presentasi
-│   ├── /frontend
-│   │   ├── home.php
-│   │   ├── jadwal.php
-│   │   └── search-dosen.php
-│   ├── /backend
-│   │   ├── layout.php      # Master layout backend (Sidebar + Header terpusat)
-│   │   ├── dashboard.php
-│   │   ├── news-form.php   # Berisi input token CSRF tersembunyi
-│   │   └── import-csv.php
-│   └── /errors
-│       └── 404.php
-├── /storage                # File sistem (TIDAK BOLEH DIAKSES LANGSUNG VIA URL)
-│   ├── /uploads            # PDF dan Thumbnail berita
-│   └── .htaccess           # Deny from all (Cegah eksekusi script jahat yang diupload)
-├── .htaccess               # Routing utama (RewriteRule ^(.*)$ index.php?url=$1)
-└── index.php               # Front Controller (Satu-satunya pintu masuk aplikasi)
+Struktur Folder — Portal BAAK Politeknik Nest
+==============================================
+
+BAAK-PolNest/
+├── index.php                         Front controller & route definitions
+│
+├── config/
+│   ├── constants.php                 BASE_URL, BASE_PATH, APP_ENV
+│   ├── database.php                  PDO singleton, getDbConnection()
+│   ├── logger.php                    logError, logInfo, logWarning
+│   └── security.php                  CSRF, rate limit, CSP nonce, e(), HTMLPurifier
+│
+├── core/
+│   ├── Controller.php                Base class: render(), requireLogin(), jsonResponse()
+│   └── Router.php                    Custom router, {param} wildcards
+│
+├── controllers/
+│   ├── AuthController.php            Login, logout, rate limit, session regenerate
+│   ├── DashboardController.php       Admin dashboard dengan statistik
+│   ├── AdvisorController.php         Search AJAX + CSV import
+│   ├── FileController.php            Upload/download file + cleanup
+│   ├── HomeController.php            Landing page + jadwal
+│   ├── NewsController.php            CRUD berita + thumbnail upload
+│   └── PageController.php            CRUD halaman + CKEditor
+│
+├── models/
+│   ├── Admin.php                     findByUsername()
+│   ├── Advisor.php                   findByNimAndName(), truncateAndReload(), backup
+│   ├── DownloadableFile.php          getActiveFiles(), replaceByCategory(), deactivate()
+│   ├── News.php                      CRUD berita + getBySlug()
+│   └── Page.php                      CRUD halaman
+│
+├── views/
+│   ├── frontend/
+│   │   ├── layout.php                Frontend layout (navbar + footer)
+│   │   ├── home.php                  Landing page + feed berita
+│   │   ├── search-dosen.php          Form pencarian AJAX
+│   │   ├── jadwal.php                Jadwal & pedoman BAAK
+│   │   ├── news-detail.php           Detail berita
+│   │   ├── page-detail.php           Detail halaman
+│   │   └── login.php                 Form login admin
+│   │
+│   └── backend/
+│       ├── layout.php                Admin sidebar + loading indicator JS
+│       ├── dashboard.php             Dashboard statistik
+│       ├── news-list.php             Tabel list berita
+│       ├── news-form.php             Form create/edit berita
+│       ├── pages-list.php            Tabel list halaman
+│       ├── pages-create.php          Form tambah halaman
+│       ├── pages-edit.php            Form edit halaman
+│       ├── files-manage.php          Upload file + tabel file aktif
+│       └── advisor-import.php        Form upload CSV
+│
+├── assets/
+│   └── js/
+│       └── search-dosen.js           AJAX search, AbortController, loading state
+│
+├── storage/
+│   ├── uploads/                      File upload (PDF/DOCX/thumbnail)
+│   └── backups/                      CSV backup sebelum import
+│
+├── migrations/
+│   ├── 001_lower_existing_data.sql   Lowercase existing student_advisors data
+│   └── 002_add_pages_title.sql       Tambah kolom title ke pages_content
+│
+├── libs/
+│   └── htmlpurifier-4.15.0-standalone/
+│
+├── schema_polinest_baak.sql          Database schema (5 tabel + 1 rate limit)
+├── dummy.csv                         Contoh CSV untuk testing
+├── .htaccess                         URL rewriting → index.php
+└── .gitignore                        Ignore uploads, .env, logs, backups

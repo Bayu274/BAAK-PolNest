@@ -1,7 +1,10 @@
 <div class="container-fluid mt-4">
     <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet"></i> Impor Data Dosen Pembimbing</h5>
+            <a href="<?= BASE_URL ?>admin/data-pembimbing" class="btn btn-sm btn-light">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Data Pembimbing
+            </a>
         </div>
         <div class="card-body">
             
@@ -11,19 +14,29 @@
                 </div>
             <?php endif; ?>
 
+            <?php if (isset($_SESSION['import_error'])): ?>
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <?= e($_SESSION['import_error']); ?>
+                </div>
+                <?php unset($_SESSION['import_error']); ?>
+            <?php endif; ?>
+
             <div class="alert alert-warning border-warning">
                 <strong><i class="bi bi-exclamation-triangle-fill"></i> Perhatian Penting!</strong><br>
                 Mengunggah file CSV baru akan <b>MENGHAPUS SELURUH DATA LAMA</b> dan menggantinya dengan data dari file yang Anda unggah. Pastikan file Anda mencakup seluruh mahasiswa aktif.
             </div>
 
-            <form action="/admin/import-csv" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Apakah Anda yakin ingin menimpa seluruh data database dengan file CSV ini?');">
+            <form action="<?= BASE_URL ?>admin/import-csv" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Apakah Anda yakin ingin menimpa seluruh data database dengan file CSV ini?');">
                 
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($data['csrf_token'] ?? ''); ?>">
+                <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
 
                 <div class="mb-4">
                     <label for="csv_file" class="form-label fw-bold">Pilih File (.csv)</label>
                     <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
                     <div class="form-text">Maksimal ukuran file 5 MB.</div>
+                    <a href="<?= BASE_URL ?>admin/import-csv/template" class="btn btn-outline-secondary btn-sm mt-2">
+                        <i class="bi bi-download"></i> Unduh Template CSV
+                    </a>
                 </div>
 
                 <div class="mb-4">
@@ -48,7 +61,7 @@
                     </table>
                 </div>
 
-                <button type="submit" class="btn btn-danger px-4">
+                <button type="submit" class="btn btn-danger px-4 btn-submit">
                     <i class="bi bi-upload"></i> Proses Impor Data
                 </button>
             </form>

@@ -15,7 +15,7 @@ AddHandler cgi-script .php .php3 .php4 .phtml .pl .py .jsp .asp .htm .shtml .sh 
 
 # Mencegah file dirender sebagai HTML/PHP oleh browser (force download untuk ekstensi mencurigakan)
 ForceType application/octet-stream
-<FilesMatch "(?i)\.(pdf|docx)$">
+<FilesMatch "(?i)\.(pdf|docx|jpg|jpeg|png|gif|webp|svg|css|js)$">
     ForceType none
 </FilesMatch>
 
