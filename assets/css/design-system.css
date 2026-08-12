@@ -291,3 +291,44 @@ a {
     outline: 3px solid var(--nest-surface);
     outline-offset: 2px;
 }
+
+/* ---------- 17. Dropdown navbar ---------- */
+.dropdown-menu-nest {
+    border: none;
+    border-radius: var(--nest-radius-md);
+    box-shadow: var(--nest-shadow-elevated);
+    padding: 8px;
+}
+.dropdown-menu-nest .dropdown-item {
+    border-radius: var(--nest-radius-sm);
+    padding: 10px 14px;
+    font-weight: 500;
+    color: var(--nest-text);
+}
+.dropdown-menu-nest .dropdown-item:hover {
+    background-color: rgba(7, 76, 132, 0.08);
+    color: var(--nest-accent);
+}
+
+/* ---------- 18. Ticker info berjalan ---------- */
+.ticker-nest {
+    background-color: var(--nest-surface);
+    color: #ffffff;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 8px 0;
+}
+.ticker-nest-track {
+    display: inline-block;
+    padding-left: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    animation: ticker-scroll 28s linear infinite;
+}
+@keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+.ticker-nest-track:hover {
+    animation-play-state: paused;
+}

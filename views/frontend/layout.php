@@ -18,6 +18,7 @@
             <small><i class="bi bi-envelope-fill me-1"></i> baak@politekniknest.ac.id</small>
         </div>
     </div>
+
     <nav class="navbar navbar-expand-lg navbar-dark navbar-nest">
         <div class="container">
             <a class="navbar-brand fw-bold" href="<?= BASE_URL ?>">BAAK Politeknik Nest</a>
@@ -27,14 +28,40 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto">
                     <a class="nav-link" href="<?= BASE_URL ?>">Beranda</a>
-                    <a class="nav-link" href="<?= BASE_URL ?>berita">Berita</a>
-                    <a class="nav-link" href="<?= BASE_URL ?>layanan">Layanan BAAK</a>
-                    <a class="nav-link" href="<?= BASE_URL ?>jadwal">Jadwal & Pedoman</a>
-                    <a class="nav-link" href="<?= BASE_URL ?>pencarian-dosen">Cari Dosen</a>
+
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Info Update
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-nest">
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>berita"><i class="bi bi-newspaper me-2"></i>Berita &amp; Pengumuman</a></li>
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>jadwal"><i class="bi bi-calendar3 me-2"></i>Jadwal &amp; Pedoman</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Info Pelayanan
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-nest">
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>layanan"><i class="bi bi-briefcase me-2"></i>Layanan BAAK</a></li>
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>pencarian-dosen"><i class="bi bi-search me-2"></i>Cari Dosen Pembimbing</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
+
+    <div class="ticker-nest d-none d-md-block">
+        <div class="ticker-nest-track">
+            <span><i class="bi bi-megaphone-fill me-2"></i>Layanan Loket BAAK: Senin – Jumat, 08.00 – 15.00 WIB</span>
+            <span class="mx-4">&bull;</span>
+            <span>Layanan daring tersedia melalui menu Info Pelayanan</span>
+            <span class="mx-4">&bull;</span>
+            <span>Hubungi baak@politekniknest.ac.id untuk pertanyaan lebih lanjut</span>
+        </div>
+    </div>
 
     <?= $content ?>
 
