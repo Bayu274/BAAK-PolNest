@@ -21,6 +21,9 @@
                 'formulir_krs'    => 'Formulir KRS',
                 'sop_dokumen'     => 'SOP & Pedoman',
                 'panduan_ta'      => 'Panduan TA',
+                'form_cuti'       => 'Formulir Cuti',
+                'form_pindah_kelas' => 'Formulir Pindah Kelas',
+                'form_mengundurkan_diri' => 'Formulir Mengundurkan Diri',
             ];
 
             if (empty($files)): ?>
@@ -44,8 +47,13 @@
                             <a href="<?= BASE_URL ?>files/download/<?= (int) $file['id'] ?>" class="list-group-item list-group-item-action d-flex align-items-center py-3">
                                 <i class="bi bi-file-earmark-pdf-fill text-danger fs-4 me-3"></i>
                                 <div class="flex-grow-1">
-                                    <div class="fw-semibold text-dark"><?= e($file['file_name']) ?></div>
-                                    <small class="text-muted"><?= e(date('d M Y', strtotime($file['uploaded_at']))) ?></small>
+                                    <div class="fw-semibold text-dark"><?= e($file['title'] ?: $file['file_name']) ?></div>
+                                    <small class="text-muted">
+                                        <?php if (!empty($file['title']) && $file['title'] !== $file['file_name']): ?>
+                                            <?= e($file['file_name']) ?> &middot;
+                                        <?php endif; ?>
+                                        <?= e(date('d M Y', strtotime($file['uploaded_at']))) ?>
+                                    </small>
                                 </div>
                                 <i class="bi bi-download text-primary fs-5"></i>
                             </a>

@@ -25,7 +25,7 @@ class DownloadableFile {
     public function getActiveFiles(): array {
         try {
             $stmt = $this->db->query(
-                "SELECT id, file_category, file_name, file_path, uploaded_at 
+                "SELECT id, file_category, file_name, title, file_path, uploaded_at 
                  FROM downloadable_files 
                  WHERE is_active = 1 
                  ORDER BY uploaded_at DESC"
@@ -59,7 +59,7 @@ class DownloadableFile {
      */
     public function getById(int $id, bool $activeOnly = true): ?array {
         try {
-            $sql = "SELECT id, file_category, file_name, file_path, uploaded_by, uploaded_at
+            $sql = "SELECT id, file_category, file_name, title, file_path, uploaded_by, uploaded_at
                     FROM downloadable_files WHERE id = :id";
             if ($activeOnly) {
                 $sql .= " AND is_active = 1";
@@ -76,19 +76,44 @@ class DownloadableFile {
     }
 
     /**
+     * Mengambil daftar kategori yang pernah dipakai (untuk datalist pada
+     * form upload — admin bebas memakai kategori yang sudah ada atau
+     * mengetik kategori baru).
+     */
+    public function getDistinctCategories(): array {
+        try {
+            $stmt = $this->db->query(
+                "SELECT DISTINCT file_category FROM downloadable_files ORDER BY file_category ASC"
+            );
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            error_log("Database Error di DownloadableFile::getDistinctCategories -> " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Menyimpan file baru sebagai AKTIF tanpa menonaktifkan file lain di
      * kategori yang sama. Dengan begitu admin boleh menyimpan banyak dokumen
      * (PDF/DOCX) dalam satu kategori — minimal 5 file atau lebih.
+     *
+     * $title: judul tampilan publik (opsional). Bila null/kosong, tampilan
+     * memakai nama file ($fileName).
      */
-    public function addFile(string $category, string $fileName, string $filePath, int $adminId): bool {
+    public function addFile(string $category, string $fileName, string $filePath, int $adminId, ?string $title = null): bool {
         try {
+            $title = ($title === null) ? null : trim($title);
+            $title = ($title === '') ? null : mb_substr($title, 0, 255);
+
             $stmt = $this->db->prepare(
-                "INSERT INTO downloadable_files (file_category, file_name, file_path, uploaded_by, is_active, uploaded_at)
-                 VALUES (:cat, :name, :path, :admin_id, 1, NOW())"
+                "INSERT INTO downloadable_files (file_category, file_name, title, file_path, uploaded_by, is_active, uploaded_at)
+                 VALUES (:cat, :name, :title, :path, :admin_id, 1, NOW())"
             );
             return $stmt->execute([
                 ':cat'      => $category,
                 ':name'     => $fileName,
+                ':title'    => $title,
                 ':path'     => $filePath,
                 ':admin_id' => $adminId,
             ]);

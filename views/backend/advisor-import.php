@@ -23,19 +23,22 @@
 
             <div class="alert alert-warning border-warning">
                 <strong><i class="bi bi-exclamation-triangle-fill"></i> Perhatian Penting!</strong><br>
-                Mengunggah file CSV baru akan <b>MENGHAPUS SELURUH DATA LAMA</b> dan menggantinya dengan data dari file yang Anda unggah. Pastikan file Anda mencakup seluruh mahasiswa aktif.
+                Mengunggah file baru (CSV / Excel) akan <b>MENGHAPUS SELURUH DATA LAMA</b> dan menggantinya dengan data dari file yang Anda unggah. Pastikan file Anda mencakup seluruh mahasiswa aktif.
             </div>
 
-            <form action="<?= BASE_URL ?>admin/import-csv" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Apakah Anda yakin ingin menimpa seluruh data database dengan file CSV ini?');">
+            <form action="<?= BASE_URL ?>admin/import-csv" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Apakah Anda yakin ingin menimpa seluruh data database dengan file ini?');">
                 
                 <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
 
                 <div class="mb-4">
-                    <label for="csv_file" class="form-label fw-bold">Pilih File (.csv)</label>
-                    <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
+                    <label for="csv_file" class="form-label fw-bold">Pilih File (.csv atau .xlsx)</label>
+                    <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv,.xlsx" required>
                     <div class="form-text">Maksimal ukuran file 5 MB.</div>
                     <a href="<?= BASE_URL ?>admin/import-csv/template" class="btn btn-outline-secondary btn-sm mt-2">
                         <i class="bi bi-download"></i> Unduh Template CSV
+                    </a>
+                    <a href="<?= BASE_URL ?>admin/import-csv/template-xlsx" class="btn btn-outline-success btn-sm mt-2">
+                        <i class="bi bi-file-earmark-excel"></i> Unduh Template Excel (.xlsx)
                     </a>
                 </div>
 
@@ -59,6 +62,13 @@
                             </tr>
                         </tbody>
                     </table>
+                    <div class="form-text">
+                        <i class="bi bi-file-earmark-excel text-success"></i> <strong>Untuk file Excel:</strong> satu sheet boleh berisi
+                        <strong>beberapa tabel</strong> — setiap tabel diawali baris header
+                        <code>nim, student_name, advisor_name, advisor_type</code> dan dapat diberi
+                        baris judul di atasnya (mis. "TABEL 1 — DOSEN WALI"). Baris judul &amp; baris
+                        kosong dilewati otomatis.
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-danger px-4 btn-submit">

@@ -31,18 +31,25 @@
 
                         <div class="mb-3">
                             <label for="file_category" class="form-label fw-bold">Kategori Dokumen</label>
-                            <select name="file_category" id="file_category" class="form-select" required>
-                                <option value="">-- Pilih Kategori --</option>
+                            <input type="text" class="form-control" id="file_category" name="file_category" list="categoryList" required placeholder="contoh: form_cuti" pattern="[a-z0-9_]{1,100}" title="Huruf kecil, angka, dan underscore (_) saja">
+                            <datalist id="categoryList">
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?php echo e($cat); ?>"><?php echo e(ucwords(str_replace('_', ' ', $cat))); ?></option>
                                 <?php endforeach; ?>
-                            </select>
+                            </datalist>
+                            <small class="form-text text-muted">Pilih dari daftar atau ketik kategori baru (huruf kecil, angka, underscore). Contoh: <code>form_cuti</code></small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="file_title" class="form-label fw-bold">Judul Dokumen</label>
+                            <input type="text" class="form-control" id="file_title" name="file_title" maxlength="255" placeholder="contoh: Formulir Cuti Akademik 2026/2027">
+                            <small class="form-text text-muted">Judul yang tampil di halaman publik. Kosongkan untuk memakai nama file.</small>
                         </div>
 
                         <div class="mb-3">
                             <label for="document_file" class="form-label fw-bold">Pilih File (PDF / DOCX)</label>
                             <input type="file" name="document_file" id="document_file" class="form-control" accept=".pdf,.docx" required>
-                            <div class="form-text text-muted">Maksimal ukuran 10 MB. Anda dapat menyimpan banyak file pada kategori yang sama (minimal 5 file atau lebih).</div>
+                            <div class="form-text text-muted">Maksimal ukuran 10 MB. Anda dapat menyimpan banyak file pada kategori yang sama.</div>
                         </div>
 
                         <button type="submit" class="btn btn-success w-100 btn-submit"><i class="bi bi-upload"></i> Simpan File</button>
@@ -62,6 +69,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Kategori</th>
+                                <th>Judul</th>
                                 <th>Nama File</th>
                                 <th>Tgl Unggah</th>
                                 <th>Aksi</th>
@@ -70,13 +78,14 @@
                         <tbody>
                             <?php if (empty($files)): ?>
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">Belum ada dokumen yang diunggah.</td>
+                                    <td colspan="5" class="text-center text-muted py-4">Belum ada dokumen yang diunggah.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($files as $file): ?>
                                 <tr>
                                     <td><span class="badge bg-secondary"><?php echo e(strtoupper(str_replace('_', ' ', $file['file_category']))); ?></span></td>
-                                    <td class="fw-bold"><?php echo e($file['file_name']); ?></td>
+                                    <td class="fw-bold"><?php echo e($file['title'] ?: $file['file_name']); ?></td>
+                                    <td><small class="text-muted"><?php echo e($file['file_name']); ?></small></td>
                                     <td>
                                         <?php 
                                         $timestamp = strtotime($file['uploaded_at']);

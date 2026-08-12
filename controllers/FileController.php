@@ -9,10 +9,30 @@ require_once __DIR__ . '/../models/DownloadableFile.php';
 
 class FileController extends Controller {
     
-    // Whitelist Kategori & Konstanta File
-    private const FILE_CATEGORIES = ['jadwal_kuliah', 'kalender_akademik', 'formulir_krs', 'sop_dokumen', 'panduan_ta'];
+    // Kategori bawaan sebagai SARAN (datalist) — admin bebas memakai kategori
+    // yang sudah ada atau mengetik kategori baru (kustom). Validasi ketat:
+    // huruf kecil, angka, underscore, maks 100 karakter.
+    private const SUGGESTED_CATEGORIES = [
+        'kalender_akademik',
+        'jadwal_kuliah',
+        'formulir_krs',
+        'sop_dokumen',
+        'panduan_ta',
+        'form_cuti',
+        'form_pindah_kelas',
+        'form_mengundurkan_diri'
+    ];
     private const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024; // 10 MB
     private const UPLOAD_DIR = __DIR__ . '/../storage/uploads/';
+
+    /**
+     * Menggabungkan kategori saran (bawaan) dengan kategori yang pernah
+     * dipakai di database untuk mengisi datalist form upload.
+     */
+    private static function getCategorySuggestions(DownloadableFile $model): array {
+        $dbCategories = $model->getDistinctCategories();
+        return array_values(array_unique(array_merge(self::SUGGESTED_CATEGORIES, $dbCategories)));
+    }
 
     /**
      * Redirect ke form files dengan pesan error flash
@@ -74,7 +94,7 @@ class FileController extends Controller {
             'page_title' => 'Manajemen File (PDF/DOCX)',
             'csrf_token' => generateCsrfToken(),
             'files' => $files,
-            'categories' => self::FILE_CATEGORIES
+            'categories' => self::getCategorySuggestions($model)
         ], true);
     }
 
@@ -89,9 +109,9 @@ class FileController extends Controller {
             $this->fileError('CSRF token tidak valid.');
         }
 
-        $category = $_POST['file_category'] ?? '';
-        if (!in_array($category, self::FILE_CATEGORIES)) {
-            $this->fileError('Kategori file tidak valid.');
+        $category = trim($_POST['file_category'] ?? '');
+        if (!preg_match('/^[a-z0-9_]{1,100}$/', $category)) {
+            $this->fileError('Kategori file tidak valid. Gunakan huruf kecil, angka, dan underscore (_) saja (maks 100 karakter).');
         }
 
         if (!isset($_FILES['document_file']) || $_FILES['document_file']['error'] !== UPLOAD_ERR_OK) {
@@ -140,7 +160,8 @@ class FileController extends Controller {
                 $adminId = $_SESSION['admin_id'];
 
                 $model = new DownloadableFile();
-                $saved = $model->addFile($category, $originalName, $randomName, $adminId);
+                $title = $_POST['file_title'] ?? '';
+                $saved = $model->addFile($category, $originalName, $randomName, $adminId, $title !== '' ? $title : null);
 
                 if (!$saved) {
                     unlink($destination);

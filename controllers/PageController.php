@@ -166,8 +166,9 @@ class PageController extends Controller {
 
         $htmlContent = sanitizeHtmlContent($_POST['html_content'] ?? '');
         $adminId = $_SESSION['admin_id'] ?? null;
+        $title = trim($_POST['title'] ?? '');
 
-        $pageModel->updateContent($identifier, $htmlContent, $adminId);
+        $pageModel->updateContent($identifier, $htmlContent, $adminId, $title !== '' ? $title : null);
 
         regenerateCsrfToken();
         logInfo("Page updated: identifier={$identifier} (admin_id: {$adminId})");

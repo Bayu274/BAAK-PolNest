@@ -54,6 +54,7 @@ CREATE TABLE `downloadable_files` (
   `id` int(11) NOT NULL,
   `file_category` varchar(100) NOT NULL,
   `file_name` varchar(255) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
   `file_path` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `uploaded_by` int(11) DEFAULT NULL,
@@ -98,7 +99,7 @@ CREATE TABLE `pages_content` (
 --
 
 INSERT INTO `pages_content` (`id`, `page_identifier`, `title`, `html_content`, `updated_by`, `last_updated`) VALUES
-(1, 'sop-cuti', 'SOP Cuti Akademik', '<p>TES FITUR&nbsp;</p>\r\n', NULL, '2026-07-10 05:57:37');
+(1, 'sop-cuti', 'SOP Cuti Akademik', '<h2>Apa itu Cuti Akademik?</h2><p>Cuti Akademik adalah penangguhan sementara kegiatan perkuliahan oleh mahasiswa untuk jangka waktu tertentu dengan tetap mempertahankan status kemahasiswaannya, sesuai ketentuan yang berlaku di Politeknik Nest.</p><h2>Persyaratan Umum</h2><ul><li>Terdaftar sebagai mahasiswa aktif pada semester berjalan.</li><li>Tidak sedang menjalani sanksi akademik atau administrasi.</li><li>Mengajukan permohonan paling lambat sesuai jadwal yang ditetapkan BAAK.</li><li>Melunasi kewajiban administrasi yang berlaku.</li></ul><h2>Prosedur Pengajuan</h2><ol><li>Mahasiswa mengunduh Formulir Cuti pada halaman <a href=\"/jadwal\">Jadwal &amp; Pedoman</a>.</li><li>Mengisi formulir secara lengkap dan menandatanganinya.</li><li>Melampirkan berkas pendukung sesuai daftar di bawah.</li><li>Menyerahkan berkas ke loket pelayanan BAAK pada jam kerja.</li><li>Menunggu verifikasi dan pengesahan dari bagian akademik.</li></ol><h2>Berkas yang Dibutuhkan</h2><ul><li>Formulir Cuti yang sudah diisi.</li><li>Fotokopi Kartu Rencana Studi (KRS) semester terakhir.</li><li>Surat keterangan atau dokumen pendukung alasan cuti.</li></ul><h2>Informasi Lebih Lanjut</h2><p>Untuk pertanyaan lebih lanjut silakan hubungi loket pelayanan BAAK pada jam kerja (Senin&ndash;Jumat, 08.00&ndash;15.00 WIB) atau melalui email <a href=\"mailto:baak@politekniknest.ac.id\">baak@politekniknest.ac.id</a>.</p>', NULL, '2026-07-10 05:57:37');
 
 -- --------------------------------------------------------
 

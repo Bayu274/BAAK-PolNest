@@ -175,6 +175,34 @@ class AdvisorController extends Controller {
     }
 
     /**
+     * Mengunduh template Excel (.xlsx) dengan format "satu sheet berisi
+     * beberapa tabel" untuk staf BAAK (request klien).
+     * Hanya admin yang login yang dapat mengunduh.
+     */
+    public function downloadTemplateXlsx(): void {
+        $this->requireLogin();
+
+        $templatePath = __DIR__ . '/../storage/templates/template_dosen_pembimbing.xlsx';
+
+        if (!file_exists($templatePath)) {
+            $this->importError('Template Excel tidak ditemukan. Hubungi pengembang.');
+        }
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=utf-8');
+        header('Content-Disposition: attachment; filename="template_dosen_pembimbing.xlsx"');
+        header('Content-Length: ' . filesize($templatePath));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        readfile($templatePath);
+        exit;
+    }
+
+    /**
      * [2H] Redirect ke form import dengan pesan error flash
      */
     private function importError(string $message): void {
@@ -210,73 +238,45 @@ class AdvisorController extends Controller {
         }
 
         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        if ($ext !== 'csv') {
-            $this->importError('Ekstensi file wajib .csv');
+        if (!in_array($ext, ['csv', 'xlsx'])) {
+            $this->importError('Ekstensi file wajib .csv atau .xlsx');
         }
 
-        // 4. Validasi MIME Type secara Strict menggunakan finfo
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $fileTmp);
-        finfo_close($finfo);
+        // 4. Validasi MIME Type secara Strict menggunakan finfo (bila tersedia)
+        $finfo = @finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo !== false) {
+            $mime = finfo_file($finfo, $fileTmp);
+            finfo_close($finfo);
 
-        $allowedMimes = ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'];
-        if (!in_array($mime, $allowedMimes)) {
-            $this->importError('Tipe file tidak valid.');
-        }
-
-        // 5. Ekstraksi dan Validasi Konten CSV
-        $rows = [];
-        if (($handle = fopen($fileTmp, "r")) !== false) {
-            // [2I] fgetcsv unlimited length
-            // [2J] BOM strip + casing normalization
-            $header = fgetcsv($handle, null, ",");
-
-            // Strip UTF-8 BOM jika ada
-            if (count($header) > 0) {
-                $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
-            }
-
-            // Normalize casing dan trim whitespace
-            $header = array_map(function($h) {
-                return strtolower(trim($h));
-            }, $header);
-
-            $expectedHeader = ['nim', 'student_name', 'advisor_name', 'advisor_type'];
-            if ($header !== $expectedHeader) {
-                fclose($handle);
-                $this->importError('Format kolom CSV salah. Harus: nim, student_name, advisor_name, advisor_type');
-            }
-
-            $rowNumber = 2;
-            while (($data = fgetcsv($handle, null, ",")) !== false) {
-                if (array_filter($data) === []) continue;
-
-                if (count($data) !== 4) {
-                    fclose($handle);
-                    $this->importError("Baris ke-{$rowNumber}: jumlah kolom tidak valid.");
-                }
-
-                $type = trim($data[3]);
-                if (!in_array($type, ['Wali', 'Magang', 'TA'])) {
-                    fclose($handle);
-                    $this->importError("Baris ke-{$rowNumber}: jenis pembimbing salah. Hanya: Wali, Magang, TA.");
-                }
-
-                $rows[] = [
-                    'nim'          => trim($data[0]),
-                    'student_name' => trim($data[1]),
-                    'advisor_name' => trim($data[2]),
-                    'advisor_type' => $type
+            if ($ext === 'xlsx') {
+                // .xlsx adalah arsip zip — finfo bisa melaporkan beberapa MIME berbeda
+                $allowedMimes = [
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/zip',
+                    'application/x-zip-compressed',
+                    'application/octet-stream',
                 ];
-                $rowNumber++;
+            } else {
+                $allowedMimes = ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'];
             }
-            fclose($handle);
+
+            if (!in_array($mime, $allowedMimes)) {
+                $this->importError('Tipe file tidak valid.');
+            }
+        } else {
+            // finfo tidak tersedia — validasi mengandalkan ekstensi file
+            logWarning("finfo tidak tersedia — validasi MIME dilewati (fallback ke ekstensi file).");
         }
+
+        // 5. Ekstraksi dan Validasi Konten (CSV atau XLSX multi-tabel)
+        $rows = ($ext === 'xlsx')
+            ? $this->parseXlsxRows($fileTmp)
+            : $this->parseCsvRows($fileTmp);
 
         // [2L] Max-row limit
         $maxRows = 50000;
         if (count($rows) > $maxRows) {
-            $this->importError("File CSV melebihi batas maksimum {$maxRows} baris.");
+            $this->importError("File melebihi batas maksimum {$maxRows} baris.");
         }
 
         // [2K] Deduplicate: per NIM+advisor_type, ambil yang terakhir
@@ -298,5 +298,152 @@ class AdvisorController extends Controller {
         } catch (Exception $e) {
             $this->importError('Gagal menyimpan data ke database.');
         }
+    }
+
+    /**
+     * Mem-parsing file CSV dengan validasi per baris.
+     * Memanggil importError() (exit) bila format tidak valid.
+     *
+     * @return array<int, array{nim:string, student_name:string, advisor_name:string, advisor_type:string}>
+     */
+    private function parseCsvRows(string $fileTmp): array {
+        $rows = [];
+
+        if (($handle = fopen($fileTmp, "r")) === false) {
+            $this->importError('File CSV tidak dapat dibaca.');
+        }
+
+        // [2I] fgetcsv unlimited length
+        // [2J] BOM strip + casing normalization
+        $header = fgetcsv($handle, null, ",");
+
+        if ($header === false) {
+            fclose($handle);
+            $this->importError('File CSV kosong.');
+        }
+
+        // Strip UTF-8 BOM jika ada
+        if (count($header) > 0) {
+            $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
+        }
+
+        // Normalize casing dan trim whitespace
+        $header = array_map(function($h) {
+            return strtolower(trim($h));
+        }, $header);
+
+        $expectedHeader = ['nim', 'student_name', 'advisor_name', 'advisor_type'];
+        if ($header !== $expectedHeader) {
+            fclose($handle);
+            $this->importError('Format kolom CSV salah. Harus: nim, student_name, advisor_name, advisor_type');
+        }
+
+        $rowNumber = 2;
+        while (($data = fgetcsv($handle, null, ",")) !== false) {
+            if (array_filter($data) === []) continue;
+
+            if (count($data) !== 4) {
+                fclose($handle);
+                $this->importError("Baris ke-{$rowNumber}: jumlah kolom tidak valid.");
+            }
+
+            $type = trim($data[3]);
+            if (!in_array($type, ['Wali', 'Magang', 'TA'])) {
+                fclose($handle);
+                $this->importError("Baris ke-{$rowNumber}: jenis pembimbing salah. Hanya: Wali, Magang, TA.");
+            }
+
+            $rows[] = [
+                'nim'          => trim($data[0]),
+                'student_name' => trim($data[1]),
+                'advisor_name' => trim($data[2]),
+                'advisor_type' => $type
+            ];
+            $rowNumber++;
+        }
+        fclose($handle);
+
+        return $rows;
+    }
+
+    /**
+     * Mem-parsing file Excel (.xlsx) dengan format "satu sheet berisi
+     * beberapa tabel" (request klien): setiap tabel diawali baris header
+     * nim, student_name, advisor_name, advisor_type; baris judul/pemisah
+     * antar tabel dibolehkan dan dilewati otomatis.
+     *
+     * Memanggil importError() (exit) bila format tidak valid.
+     *
+     * @return array<int, array{nim:string, student_name:string, advisor_name:string, advisor_type:string}>
+     */
+    private function parseXlsxRows(string $fileTmp): array {
+        require_once __DIR__ . '/../libs/XlsxReader.php';
+
+        try {
+            $sheetRows = XlsxReader::read($fileTmp);
+        } catch (Throwable $e) {
+            $this->importError('File Excel tidak valid: ' . $e->getMessage());
+        }
+
+        if ($sheetRows === []) {
+            $this->importError('File Excel kosong atau tidak memiliki baris data.');
+        }
+
+        $expectedHeader = ['nim', 'student_name', 'advisor_name', 'advisor_type'];
+        $rows = [];
+
+        foreach ($sheetRows as $rowIndex => $cells) {
+            $clean = [];
+            foreach ($cells as $cell) {
+                $clean[] = trim((string) $cell);
+            }
+
+            // Baris kosong (mis. pemisah antar tabel) → lewati
+            if (array_filter($clean) === []) {
+                continue;
+            }
+
+            $rowNumber = $rowIndex + 1;
+            $cleanCount = count($clean);
+
+            // Baris header → penanda tabel baru (validate bentuknya)
+            $firstCell = strtolower($clean[0] ?? '');
+            if ($firstCell === 'nim') {
+                $header = array_map(function($h) {
+                    return strtolower(trim($h));
+                }, array_slice($clean, 0, 4));
+                if ($header !== $expectedHeader) {
+                    $this->importError("Baris ke-{$rowNumber}: format header tabel salah. Harus: nim, student_name, advisor_name, advisor_type");
+                }
+                continue;
+            }
+
+            // Baris dengan kolom < 4 → judul/pemisah antar tabel, lewati
+            if ($cleanCount < 4) {
+                continue;
+            }
+
+            if ($cleanCount > 4) {
+                $this->importError("Baris ke-{$rowNumber}: jumlah kolom tidak valid.");
+            }
+
+            $type = $clean[3];
+            if (!in_array($type, ['Wali', 'Magang', 'TA'])) {
+                $this->importError("Baris ke-{$rowNumber}: jenis pembimbing salah. Hanya: Wali, Magang, TA.");
+            }
+
+            $rows[] = [
+                'nim'          => $clean[0],
+                'student_name' => $clean[1],
+                'advisor_name' => $clean[2],
+                'advisor_type' => $type
+            ];
+        }
+
+        if ($rows === []) {
+            $this->importError('File Excel tidak mengandung data pembimbing yang valid. Pastikan setiap tabel memiliki header nim, student_name, advisor_name, advisor_type.');
+        }
+
+        return $rows;
     }
 }

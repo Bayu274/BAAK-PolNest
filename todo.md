@@ -1182,3 +1182,47 @@ User → Form submit → AdvisorController::processImport()
 
 > **Dokumen ini adalah acuan tunggal untuk seluruh tim development.**
 > Setiap perubahan scope wajib dicatat di dokumen ini (update versi + log keputusan), sesuai §5A PRD.md.
+
+---
+
+## 11. Update Terbaru — Fase 17.x (12 Agustus 2026)
+
+> **Trigger:** permintaan klien (Pak Dimas) — (1) admin kasih judul & kategori kustom pada file unduhan, (2) import data dosen pembimbing pakai file **Excel per-tabel** (1 sheet, beberapa tabel), bukan CSV datar. Prioritas: tuntasakan SOP Cuti + Form Cuti dulu.
+
+### 11.1 Investigasi SOP Cuti (backend "nanggung" — terkait phpMyAdmin) ✅ SELESAI
+- `schema_polinest_baak.sql:101` (dump phpMyAdmin) men-seed halaman `sop-cuti` hanya dengan konten **tes** `<p>TES FITUR&nbsp;</p>`.
+- Form Cuti (PRD No.10) ditandai ✅ tapi belum ada kategori/kategori file maupun file PDFnya.
+- **Perbaikan:** seed SOP Cuti diganti dengan konten SOP Akademik template asli (definisi, syarat, prosedur, berkas, kontak). Form Cuti disiapkan via kategori `form_cuti` (lihat 11.2) — file PDF resmi di-upload via UI begitu tersedia.
+
+### 11.2 Judul & Kategori Kustom File Unduhan ✅ SELESAI
+- `migrations/007_downloadable_files_title.sql` — kolom `title` (idempotent).
+- `models/DownloadableFile.php`: `addFile/getById/getActiveFiles` bawa `title`; baru `getDistinctCategories()`.
+- `controllers/FileController.php`: validasi kategori kustom `^[a-z0-9_]{1,100}$`, `SUGGESTED_CATEGORIES` termasuk `form_cuti`/`form_pindah_kelas`/`form_mengundurkan_diri`.
+- `views/backend/files-manage.php`: input kategori + datalist + field Judul Dokumen + kolom Judul di tabel.
+- `views/frontend/jadwal.php`: label `form_cuti`/`form_pindah_kelas`/`form_mengundurkan_diri` + judul publik.
+
+### 11.3 Form Edit Halaman — Bisa Ganti Judull ✅ SELESAI
+- `views/backend/pages-edit.php` + `models/Page.php` `updateContent()` (param `$title` opsional) + `PageController::save()`.
+
+### 11.4 Fix Bug Tampilan (style commit 12 Agu) ✅ SELESAI
+- `views/frontend/page-detail.php` — tag `<h1>` rusak (judul SOP Cuti) dibetulkan.
+- `views/frontend/news-detail.php` — `</div>` penutup `row` yang hilang.
+
+### 11.5 Import Excel Per-Tabel (native PHP, tanpa Composer) ✅ SELESAI
+- `libs/XlsxReader.php` baru — parser `.xlsx` pakai `ZipArchive` + `SimpleXML`; membaca sel inline string & shared string, namespace-agnostic via `local-name()`.
+- `controllers/AdvisorController.php`: refaktor `processImport()` → `parseCsvRows()` + `parseXlsxRows()`; XLSX menerima **1 sheet berisi beberapa tabel** (header tiap tabel `nim,student_name, advisor_name, advisor_type`; baris judul/pemisah dilewati).
+- `index.php`: route `GET /admin/import-csv/template-xlsx` + `AdvisorController::downloadTemplateXlsx()`.
+- `storage/templates/template_dosen_pembimbing.xlsx` baru (3 tabel contoh; XML well-formedness & XPath disimulasikan via PowerShell — belum di-execute dengan PHP CLI).
+- `views/backend/advisor-import.php`: accept `.csv,.xlsx` + petunjuk format per-tabel.
+
+### 11.6 Daftar File Berubah/Ditambah
+**Diubah (11):** `README.md`, `config/setup.php`, `controllers/AdvisorController.php`, `controllers/FileController.php`, `controllers/PageController.php`, `index.php`, `models/DownloadableFile.php`, `models/Page.php`, `schema_polinest_baak.sql`, `views/backend/advisor-import.php`, `views/backend/files-manage.php`, `views/backend/pages-edit.php`, `views/frontend/jadwal.php`, `views/frontend/news-detail.php`, `views/frontend/page-detail.php`
+**Baru (4):** `libs/XlsxReader.php`, `migrations/006_seed_sop_pages.sql`, `migrations/007_downloadable_files_title.sql`, `storage/templates/template_dosen_pembimbing.xlsx`
+
+### 11.7 Verifikasi
+- `php -l` belum dijalankan di mesin dev ini (`php.exe` portabel rusak — exit `0xC0000135` DLL missing); segera jalankan `php -l` pada tiap file `.php` di atas pakai PHP XAMPP (`C:\xampp\php\php.exe`).
+- **Todo manual terakhir:** jalankan migration 006/007, upload file kategori `form_cuti`+judul → cek tampil di `/jadwal`; import `template_dosen_pembimbing.xlsx` → cek `student_advisors` terisi. Masukkan file PDF resmi Form Cuti via UI.
+
+### 11.8 Catatan / Follow-up
+- UI kelola akun admin (buat/edit admin, toggle non-aktif) **belum ada** — via SQL/phpMyAdmin (sesuai catatan Phase 17).
+- `files_upload/` (5 PDF dummy ~14 KB) tidak terpakai aplikasi — **saring/replace** secara terpisah (di luar fokus SOP Cuti).

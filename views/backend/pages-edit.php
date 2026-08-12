@@ -32,6 +32,12 @@
                 <input type="hidden" name="identifier" value="<?= e($identifier) ?>">
 
                 <div class="mb-4">
+                    <label for="title" class="form-label text-muted">Judul Halaman</label>
+                    <input type="text" class="form-control" id="title" name="title" value="<?= e($page['title'] ?? '') ?>" maxlength="255">
+                    <small class="form-text text-muted">Kosongkan untuk mempertahankan judul yang lama.</small>
+                </div>
+
+                <div class="mb-4">
                     <label for="html_content" class="form-label text-muted">Gunakan editor di bawah ini untuk mengubah isi konten, menebalkan teks, atau membuat daftar <em>(list)</em>. Perubahan akan langsung terlihat oleh mahasiswa di halaman publik.</label>
 
                     <textarea class="form-control rich-text-editor" id="html_content" name="html_content" rows="15"><?= e($page['html_content'] ?? '') ?></textarea>

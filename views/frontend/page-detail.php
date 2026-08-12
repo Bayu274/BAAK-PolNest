@@ -10,7 +10,7 @@
 
             <div class="card shadow-sm border-0">
                 <div class="card-body p-5">
-                    <h1 class="section-title-nest fw-bold mb-4"></h1>
+                    <h1 class="section-title-nest fw-bold mb-4">
                         <?= e($page['title'] ?: $page['page_identifier']) ?>
                     </h1>
 

@@ -80,6 +80,7 @@ if (!function_exists('ensureAppReady')) {
                     `id` int(11) NOT NULL AUTO_INCREMENT,
                     `file_category` varchar(100) NOT NULL,
                     `file_name` varchar(255) NOT NULL,
+                    `title` varchar(255) DEFAULT NULL,
                     `file_path` varchar(255) NOT NULL,
                     `is_active` tinyint(1) NOT NULL DEFAULT 1,
                     `uploaded_by` int(11) DEFAULT NULL,
@@ -186,7 +187,8 @@ if (!function_exists('ensureAppSchemaColumns')) {
             'downloadable_files' => [
                 'file_category' => "ADD COLUMN `file_category` varchar(100) NOT NULL AFTER `id`",
                 'file_name'     => "ADD COLUMN `file_name` varchar(255) NOT NULL AFTER `file_category`",
-                'file_path'     => "ADD COLUMN `file_path` varchar(255) NOT NULL AFTER `file_name`",
+                'title'         => "ADD COLUMN `title` varchar(255) DEFAULT NULL AFTER `file_name`",
+                'file_path'     => "ADD COLUMN `file_path` varchar(255) NOT NULL AFTER `title`",
                 'is_active'     => "ADD COLUMN `is_active` tinyint(1) NOT NULL DEFAULT 1 AFTER `file_path`",
                 'uploaded_by'   => "ADD COLUMN `uploaded_by` int(11) DEFAULT NULL AFTER `is_active`",
                 'uploaded_at'   => "ADD COLUMN `uploaded_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `uploaded_by`",

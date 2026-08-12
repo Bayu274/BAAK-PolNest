@@ -19,20 +19,32 @@ class Page {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function updateContent($identifier, $htmlContent, $adminId) {
-        // Kolom updated_by digunakan untuk melacak admin mana yang terakhir kali mengedit halaman
-        $stmt = $this->db->prepare("
-            UPDATE pages_content 
-            SET html_content = :html_content, 
-                updated_by = :updated_by 
-            WHERE page_identifier = :identifier
-        ");
-        
-        return $stmt->execute([
+    public function updateContent($identifier, $htmlContent, $adminId, $title = null) {
+        // Kolom updated_by digunakan untuk melacak admin mana yang terakhir kali mengedit halaman.
+        // Judul opsional: bila diisi (tidak kosong), ikut diperbarui; bila kosong/null,
+        // judul lama dipertahankan (backward-compatible dengan pemanggil lama).
+        $title = ($title === null) ? null : trim($title);
+        $updateTitle = ($title !== null && $title !== '');
+
+        $sql = "UPDATE pages_content 
+                SET html_content = :html_content, 
+                    updated_by = :updated_by";
+        if ($updateTitle) {
+            $sql .= ", title = :title";
+        }
+        $sql .= " WHERE page_identifier = :identifier";
+
+        $params = [
             'html_content' => $htmlContent,
             'updated_by'   => $adminId,
             'identifier'   => $identifier
-        ]);
+        ];
+        if ($updateTitle) {
+            $params['title'] = $title;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 
     // METHOD BARU: Untuk menambahkan halaman baru (Create)

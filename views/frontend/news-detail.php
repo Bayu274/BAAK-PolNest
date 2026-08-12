@@ -33,8 +33,9 @@
 
             <hr class="mt-5 mb-4">
             <div class="d-flex gap-2">
-            <a href="<?= BASE_URL ?>berita" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> Kembali ke Berita</a>
-            <a href="<?= BASE_URL ?>" class="btn btn-link text-decoration-none">Beranda</a>
+                <a href="<?= BASE_URL ?>berita" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> Kembali ke Berita</a>
+                <a href="<?= BASE_URL ?>" class="btn btn-link text-decoration-none">Beranda</a>
+            </div>
         </div>
     </div>
 </main>

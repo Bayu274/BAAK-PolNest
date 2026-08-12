@@ -34,6 +34,9 @@ mysql -u root -p polinest_baak < migrations/001_lower_existing_data.sql
 mysql -u root -p polinest_baak < migrations/002_add_pages_title.sql
 mysql -u root -p polinest_baak < migrations/003_admin_users_extra.sql
 mysql -u root -p polinest_baak < migrations/004_news_is_active.sql
+mysql -u root -p polinest_baak < migrations/005_downloadable_files_fix.sql
+mysql -u root -p polinest_baak < migrations/006_seed_sop_pages.sql
+mysql -u root -p polinest_baak < migrations/007_downloadable_files_title.sql
 
 # 4. Setup directory permissions
 chmod -R 755 storage/
@@ -106,9 +109,9 @@ BAAK-PolNest/
 
 - **Pencarian Dosen Pembimbing** — AJAX exact match NIM + Nama
 - **CRUD Berita** — Create, read, update, delete + thumbnail upload
-- **Manajemen Halaman** — Rich text editor (CKEditor 5)
-- **Upload File** — PDF/DOCX dengan validasi berlapis
-- **Import CSV** — Data dosen pembimbing dengan atomic swap
+- **Manajemen Halaman** — Rich text editor (CKEditor 5), judul & konten dapat disunting
+- **Upload File** — PDF/DOCX dengan validasi berlapis; **judul tampilan kustom** (judul publik terpisah dari nama file) dan **kategori kustom** (bebas mengetik kategori baru, mis. `form_cuti`)
+- **Import CSV/Excel** — Data dosen pembimbing dengan atomic swap; mendukung `.csv` maupun `.xlsx` (satu sheet boleh berisi **beberapa tabel**, masing-masing diawali baris header `nim, student_name, advisor_name, advisor_type`)
 - **Dashboard Admin** — Statistik dan aksi cepat
 - **Security** — CSRF, rate limiting, CSP nonce, HTMLPurifier
 
