@@ -1,328 +1,135 @@
 /* ============================================================
-   BAAK Politeknik Nest — Design System
-   Sumber token: politekniknest.design.md (ekstraksi dari
-   https://politekniknest.ac.id/)
-   Versi: alpha (Phase 14)
+   BAAK Politeknik Nest — Design System (Updated & Fixed)
+   Penyesuaian Visual & Brand: Vibrant Gradient & Modern Nest Style
    ============================================================ */
+
+/* Import Google Font Plus Jakarta Sans / Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap');
 
 /* ---------- 1. Design Tokens (CSS Custom Properties) ---------- */
 :root {
-    /* Warna — politekniknest.design.md */
-    --nest-primary: #3a4f66;
+    /* Warna Utama Khas Politeknik Nest (Magenta, Coral Orange, & Dark Navy) */
+    --nest-primary: #1A2238;         /* Dark Slate/Navy (Untuk Header Topbar & Footer) */
     --nest-on-primary: #ffffff;
-    --nest-background: #ffffff;
-    --nest-surface: #f96d80;
-    --nest-text: #3a4f66;
-    --nest-text-muted: #074c84;
-    --nest-accent: #074c84;
+    --nest-background: #F8FAFC;      /* Soft Light Grey background */
+    --nest-surface: #E01A4F;         /* Vibrant Pink/Magenta */
+    --nest-accent: #FF6B35;          /* Bright Coral Orange */
+    --nest-accent-yellow: #FFC107;   /* Kuning Aksen */
+    --nest-text: #1E293B;            /* Charcoal Dark Text */
+    --nest-text-muted: #64748B;      /* Slate Grey Muted */
+
+    /* Gradasi Khas Landing Page Nest */
+    --nest-gradient-hero: linear-gradient(135deg, #E01A4F 0%, #FF6B35 100%);
+    --nest-gradient-ticker: linear-gradient(90deg, #FF5252 0%, #FF7A00 100%);
 
     /* Tipografi */
-    --nest-font-display: "Montserrat", sans-serif;
-    --nest-font-body: "Roboto", sans-serif;
+    --nest-font-display: "Plus Jakarta Sans", "Montserrat", sans-serif;
+    --nest-font-body: "Plus Jakarta Sans", sans-serif;
     --nest-size-display: 42px;
-    --nest-size-heading: 41px;
-    --nest-size-body: 17px;
+    --nest-size-heading: 32px;
+    --nest-size-body: 16px;
 
-    /* Radius */
+    /* Radius Modul */
     --nest-radius-sm: 8px;
-    --nest-radius-md: 10px;
-    --nest-radius-lg: 30px;
+    --nest-radius-md: 14px;
+    --nest-radius-lg: 24px;
 
     /* Shadow */
-    --nest-shadow-card: rgba(0, 0, 0, 0.1) 5px 5px 20px 0px;
-    --nest-shadow-elevated: rgba(44, 62, 80, 0.07) 0px 10px 50px 0px;
+    --nest-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --nest-shadow-elevated: 0 12px 30px rgba(224, 26, 79, 0.18);
 
     /* Motion */
-    --nest-motion-fast: 120ms;
+    --nest-motion-fast: 150ms;
     --nest-motion-base: 300ms;
-    --nest-motion-slow: 1200ms;
-    --nest-easing: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+    --nest-easing: cubic-bezier(0.16, 1, 0.3, 1);
 
     /* ---------- Override Bootstrap 5.3 ---------- */
-    --bs-primary: #3a4f66;
-    --bs-primary-rgb: 58, 79, 102;
-    --bs-secondary: #074c84;
-    --bs-secondary-rgb: 7, 76, 132;
-    --bs-dark: #3a4f66;
-    --bs-dark-rgb: 58, 79, 102;
-    --bs-light: #f3f5f8;
-    --bs-light-rgb: 243, 245, 248;
-    --bs-body-color: #3a4f66;
-    --bs-body-bg: #ffffff;
-    --bs-link-color: #074c84;
-    --bs-link-hover-color: #0a5fa6;
-    --bs-body-font-family: "Roboto", sans-serif;
-    --bs-body-font-size: 17px;
-    --bs-heading-font-family: "Montserrat", sans-serif;
-    --bs-heading-font-weight: 700;
-    --bs-border-radius: 10px;
-    --bs-border-radius-sm: 8px;
-    --bs-border-radius-lg: 30px;
-    --bs-card-box-shadow: rgba(0, 0, 0, 0.1) 5px 5px 20px 0px;
-    --bs-card-border-radius: 10px;
+    --bs-primary: #E01A4F;
+    --bs-primary-rgb: 224, 26, 79;
+    --bs-secondary: #FF6B35;
+    --bs-secondary-rgb: 255, 107, 53;
+    --bs-dark: #1A2238;
+    --bs-dark-rgb: 26, 34, 56;
+    --bs-light: #F8FAFC;
+    --bs-body-color: #1E293B;
+    --bs-body-bg: #F8FAFC;
+    --bs-link-color: #E01A4F;
+    --bs-link-hover-color: #FF6B35;
+    --bs-body-font-family: "Plus Jakarta Sans", sans-serif;
+    --bs-heading-font-family: "Plus Jakarta Sans", sans-serif;
+    --bs-heading-font-weight: 800;
+    --bs-border-radius: 14px;
+    --bs-border-radius-lg: 24px;
 }
 
 /* ---------- 2. Tipografi ---------- */
 body {
     font-family: var(--nest-font-body);
     font-size: var(--nest-size-body);
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--nest-text);
     background-color: var(--nest-background);
 }
 
-h1, .h1 { font-family: var(--nest-font-display); font-weight: 700; }
-h2, .h2 { font-family: var(--nest-font-display); font-weight: 700; }
-h3, .h3 { font-family: var(--nest-font-display); font-weight: 700; }
-h4, .h4, h5, .h5, h6, .h6 { font-family: var(--nest-font-display); font-weight: 700; }
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+    font-family: var(--nest-font-display);
+    font-weight: 800;
+    color: var(--nest-primary);
+}
 
-/* ---------- 3. Topbar brand (garis kontak di atas navbar) ---------- */
+/* ---------- 3. Topbar Brand (Kontak Atas) ---------- */
 .topbar-nest {
-    background-color: var(--nest-accent);
+    background-color: var(--nest-primary);
     color: #ffffff;
     font-size: 13px;
-    letter-spacing: 0.2px;
+    font-weight: 500;
 }
 .topbar-nest a {
     color: #ffffff;
     text-decoration: none;
+    opacity: 0.9;
 }
 .topbar-nest a:hover {
-    text-decoration: underline;
+    opacity: 1;
+    color: var(--nest-accent-yellow);
 }
 
 /* ---------- 4. Navbar ---------- */
 .navbar-nest {
     background-color: var(--nest-primary) !important;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 .navbar-nest .navbar-brand {
     font-family: var(--nest-font-display);
     font-weight: 800;
-    letter-spacing: 0.3px;
+    color: #ffffff !important;
 }
 .navbar-nest .navbar-nav .nav-link {
     color: rgba(255, 255, 255, 0.85);
-    font-weight: 500;
-    transition: color var(--nest-motion-fast) var(--nest-easing);
-    position: relative;
-}
-.navbar-nest .navbar-nav .nav-link:hover {
-    color: #ffffff;
-}
-.navbar-nest .navbar-nav .nav-link::after {
-    content: "";
-    position: absolute;
-    left: var(--bs-nav-link-padding-x, 0.5rem);
-    right: var(--bs-nav-link-padding-x, 0.5rem);
-    bottom: 4px;
-    height: 2px;
-    background-color: var(--nest-surface);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--nest-motion-base) var(--nest-easing);
-}
-.navbar-nest .navbar-nav .nav-link:hover::after {
-    transform: scaleX(1);
-}
-
-/* ---------- 5. Hero (Beranda) ---------- */
-.hero-nest {
-    border-radius: var(--nest-radius-lg);
-    overflow: hidden;
-    background: linear-gradient(120deg, var(--nest-primary) 0%, var(--nest-accent) 100%);
-    color: var(--nest-on-primary);
-    box-shadow: var(--nest-shadow-elevated);
-}
-.hero-nest h1 {
-    font-family: var(--nest-font-display);
-    font-size: clamp(30px, 4.5vw, var(--nest-size-display));
-    font-weight: 800;
-    line-height: 1.3;
-}
-.hero-nest p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 18px;
-    line-height: 1.6;
-}
-.hero-nest .hero-nest-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background-color: var(--nest-surface);
-    color: #ffffff;
-    font-family: var(--nest-font-display);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: var(--nest-radius-lg);
-}
-
-/* ---------- 6. Section title ---------- */
-.section-title-nest {
-    position: relative;
-    padding-bottom: 10px;
-    margin-bottom: 24px;
-    font-family: var(--nest-font-display);
-    font-weight: 700;
-}
-.section-title-nest::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 56px;
-    height: 4px;
-    border-radius: var(--nest-radius-lg);
-    background-color: var(--nest-surface);
-}
-
-/* ---------- 7. Card ---------- */
-.card {
-    border: none;
-    box-shadow: var(--nest-shadow-card);
-    border-radius: var(--nest-radius-md);
-    transition: transform var(--nest-motion-base) var(--nest-easing),
-                box-shadow var(--nest-motion-base) var(--nest-easing);
-}
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--nest-shadow-elevated);
-}
-.card-header {
-    border-top-left-radius: var(--nest-radius-md) !important;
-    border-top-right-radius: var(--nest-radius-md) !important;
-}
-
-/* ---------- 8. Button ---------- */
-.btn {
-    border-radius: var(--nest-radius-md);
-    transition: all var(--nest-motion-base) var(--nest-easing);
-}
-.btn-lg {
-    border-radius: var(--nest-radius-lg);
-}
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(58, 79, 102, 0.28);
-}
-
-/* ---------- 9. Form ---------- */
-.form-control, .form-select {
-    border-radius: var(--nest-radius-sm);
-    border-color: #d7dde4;
-}
-.form-control:focus, .form-select:focus {
-    border-color: var(--nest-accent);
-    box-shadow: 0 0 0 0.2rem rgba(7, 76, 132, 0.15);
-}
-.form-label {
     font-weight: 600;
-    color: var(--nest-text);
+    padding: 0.5rem 1rem;
+    transition: all var(--nest-motion-fast) var(--nest-easing);
 }
-
-/* ---------- 10. Breadcrumb ---------- */
-.breadcrumb {
-    font-size: 14px;
-}
-.breadcrumb-item a {
-    color: var(--nest-accent);
-    font-weight: 500;
-}
-.breadcrumb-item.active {
-    color: var(--nest-text);
-}
-
-/* ---------- 11. Badge ---------- */
-.badge {
-    border-radius: var(--nest-radius-sm);
-    padding: 0.45em 0.7em;
-    font-weight: 600;
-}
-
-/* ---------- 12. Tabel ---------- */
-.table thead th {
-    font-family: var(--nest-font-display);
-    font-size: 14px;
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
-    border-bottom-width: 2px;
-    border-bottom-color: var(--nest-primary);
-}
-
-/* ---------- 13. Alert ---------- */
-.alert {
-    border-radius: var(--nest-radius-md);
-    border: none;
-}
-
-/* ---------- 14. Footer ---------- */
-.footer-nest {
-    background-color: var(--nest-primary);
-    color: rgba(255, 255, 255, 0.85);
-}
-.footer-nest h6 {
-    font-family: var(--nest-font-display);
-    font-weight: 700;
+.navbar-nest .navbar-nav .nav-link:hover,
+.navbar-nest .navbar-nav .nav-link.active {
     color: #ffffff;
-    letter-spacing: 0.5px;
-}
-.footer-nest a {
-    color: rgba(255, 255, 255, 0.65);
-    transition: color var(--nest-motion-fast) var(--nest-easing);
-}
-.footer-nest a:hover {
-    color: #ffffff;
-    text-decoration: underline !important;
-}
-.footer-nest hr {
-    border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* ---------- 15. Link umum ---------- */
-a {
-    transition: color var(--nest-motion-fast) var(--nest-easing);
-}
-
-/* ---------- 16. Aksesibilitas ---------- */
-:focus-visible {
-    outline: 3px solid var(--nest-surface);
-    outline-offset: 2px;
-}
-
-/* ---------- 17. Dropdown navbar ---------- */
-.dropdown-menu-nest {
-    border: none;
-    border-radius: var(--nest-radius-md);
-    box-shadow: var(--nest-shadow-elevated);
-    padding: 8px;
-}
-.dropdown-menu-nest .dropdown-item {
-    border-radius: var(--nest-radius-sm);
-    padding: 10px 14px;
-    font-weight: 500;
-    color: var(--nest-text);
-}
-.dropdown-menu-nest .dropdown-item:hover {
-    background-color: rgba(7, 76, 132, 0.08);
-    color: var(--nest-accent);
-}
-
-/* ---------- 18. Ticker info berjalan ---------- */
+/* ---------- 5. Ticker Info / Running Text ---------- */
 .ticker-nest {
-    background-color: var(--nest-surface);
+    background: var(--nest-gradient-ticker);
     color: #ffffff;
     overflow: hidden;
     white-space: nowrap;
-    padding: 8px 0;
+    padding: 10px 0;
+    box-shadow: 0 2px 8px rgba(255, 82, 82, 0.2);
 }
 .ticker-nest-track {
     display: inline-block;
     padding-left: 100%;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.3px;
     animation: ticker-scroll 28s linear infinite;
 }
 @keyframes ticker-scroll {
@@ -331,4 +138,162 @@ a {
 }
 .ticker-nest-track:hover {
     animation-play-state: paused;
+}
+
+/* ---------- 6. Hero / Banner Utama ---------- */
+.hero-nest {
+    border-radius: var(--nest-radius-lg);
+    overflow: hidden;
+    background: var(--nest-gradient-hero);
+    color: #ffffff;
+    box-shadow: var(--nest-shadow-elevated);
+    padding: 3rem 2rem;
+}
+.hero-nest h1 {
+    color: #ffffff;
+    font-size: clamp(28px, 4vw, var(--nest-size-display));
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+.hero-nest p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+}
+.hero-nest .hero-nest-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- 7. Card & Quick Access (Akses Cepat) ---------- */
+.card {
+    border: 1px solid #E2E8F0;
+    background: #ffffff;
+    box-shadow: var(--nest-shadow-card);
+    border-radius: var(--nest-radius-md);
+    transition: all var(--nest-motion-base) var(--nest-easing);
+}
+.card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(224, 26, 79, 0.3);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Card Khusus Jam Layanan / Loket Gelap */
+.card-dark-nest {
+    background-color: var(--nest-primary) !important;
+    color: #ffffff !important;
+    border: none;
+}
+
+/* ---------- 8. Section Title ---------- */
+.section-title-nest {
+    position: relative;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+.section-title-nest::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 45px;
+    height: 4px;
+    border-radius: 10px;
+    background: var(--nest-surface);
+}
+
+/* ---------- 9. Tombol (Buttons) ---------- */
+.btn {
+    border-radius: 30px;
+    font-weight: 700;
+    padding: 0.6rem 1.4rem;
+    transition: all var(--nest-motion-base) var(--nest-easing);
+}
+.btn-primary {
+    background: var(--nest-surface);
+    border-color: var(--nest-surface);
+    color: #ffffff;
+}
+.btn-primary:hover {
+    background: #C4123F;
+    border-color: #C4123F;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(224, 26, 79, 0.3);
+}
+.btn-outline-light {
+    border-radius: 30px;
+    font-weight: 700;
+}
+.hero-nest .btn-outline-light i {
+    color: #ffffff !important;
+}
+
+/* ---------- 10. Footer ---------- */
+.footer-nest {
+    background-color: var(--nest-primary);
+    color: #94A3B8;
+}
+.footer-nest h6 {
+    color: #ffffff;
+    font-weight: 700;
+}
+.footer-nest a {
+    color: #94A3B8;
+    text-decoration: none;
+}
+.footer-nest a:hover {
+    color: #ffffff;
+}
+
+/* ---------- 11. Focus & Accessibility ---------- */
+:focus-visible {
+    outline: 3px solid var(--nest-accent);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   12. FIX UNIVERSAL: MEMUNCULKAN TEKS JUDUL & IKON JAM LAYANAN
+   ============================================================ */
+
+/* Memaksa elemen di dalam box gelap paling bawah/card-dark-nest */
+.card-dark-nest,
+[class*="bg-dark"],
+div[class*="col"] > div:last-child {
+    background-color: #1A2238 !important;
+    color: #ffffff !important;
+}
+
+/* Memaksa SEMUA teks (span, div, p, h1-h6, strong, title) muncul putih */
+.card-dark-nest *,
+[class*="bg-dark"] *,
+div[class*="col"] > div:last-child * {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Memaksa Ikon (SVG / Tag <i>) berwarna Kuning/Orange terang */
+.card-dark-nest i,
+.card-dark-nest svg,
+[class*="bg-dark"] i,
+[class*="bg-dark"] svg,
+div[class*="col"] > div:last-child i,
+div[class*="col"] > div:last-child svg {
+    color: #FFC107 !important;
+    fill: #FFC107 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
 }
