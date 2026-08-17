@@ -343,3 +343,99 @@ main .card.bg-dark svg {
 .news-grid > div:nth-child(4n+4) .card-img-top.bg-secondary {
     background: var(--nest-gradient-hero) !important; /* gradient magenta-oranye */
 }
+/* ============================================================
+   16. FLUID FULL-WIDTH RESPONSIVE (INSPIRASI BAAK GUNADARMA)
+   ============================================================ */
+
+/* Menghilangkan margin bawaan & scrollbar horizontal */
+html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* Memaksa semua container agar melebar 100% dari lebar layar */
+.container,
+.container-fluid,
+header,
+main,
+footer,
+section,
+.navbar-nest,
+.topbar-nest,
+.ticker-nest {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+}
+
+/* Menghapus border-radius pada Hero Banner agar menyatu penuh hingga tepi layar */
+.hero-nest {
+    width: 100% !important;
+    border-radius: 0 !important;
+}
+
+/* Menyesuaikan jarak padding untuk layar kecil/HP */
+@media (max-width: 768px) {
+    .container,
+    .container-fluid,
+    header,
+    main,
+    footer,
+    section,
+    .navbar-nest,
+    .topbar-nest,
+    .ticker-nest {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+/* ============================================================
+   16. FLUID FULL-WIDTH RESPONSIVE (INSPIRASI BAAK GUNADARMA)
+   ============================================================ */
+
+/* Menghilangkan margin bawaan & scrollbar horizontal */
+html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* Memaksa semua container agar melebar 100% dari lebar layar */
+.container,
+.container-fluid,
+header,
+main,
+footer,
+section,
+.navbar-nest,
+.topbar-nest,
+.ticker-nest {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+}
+
+/* Hero Banner melengkung halus di keempat sudutnya */
+.hero-nest {
+    width: 100% !important;
+    border-radius: var(--nest-radius-lg) !important; /* Melengkung 24px sesuai design system */
+}
+
+/* Menyesuaikan jarak padding untuk layar kecil/HP */
+@media (max-width: 768px) {
+    .container,
+    .container-fluid,
+    header,
+    main,
+    footer,
+    section,
+    .navbar-nest,
+    .topbar-nest,
+    .ticker-nest {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
