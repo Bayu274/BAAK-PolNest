@@ -313,3 +313,14 @@ main .card.bg-dark svg {
     color: #FF6B35 !important;
     margin-right: 8px !important;
 }
+/* ============================================================
+   14. FIX KONTRAS: TEKS SEKUNDER (deskripsi berita, subtitle)
+   ============================================================ */
+
+/* --bs-secondary dipakai untuk warna tombol oranye brand,
+   tapi Bootstrap juga memakainya untuk .text-secondary (teks body).
+   Override khusus di sini supaya teks body tetap gelap & terbaca,
+   tombol tetap oranye seperti biasa. */
+.text-secondary {
+    color: var(--nest-text-muted) !important;
+}
