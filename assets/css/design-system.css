@@ -1,49 +1,41 @@
 /* ============================================================
-   BAAK Politeknik Nest — Design System (Updated & Fixed)
-   Penyesuaian Visual & Brand: Vibrant Gradient & Modern Nest Style
+   BAAK Politeknik Nest — Design System (PERBAIKAN TOTAL)
    ============================================================ */
 
-/* Import Google Font Plus Jakarta Sans / Montserrat */
+/* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap');
 
-/* ---------- 1. Design Tokens (CSS Custom Properties) ---------- */
+/* ---------- 1. Design Tokens ---------- */
 :root {
-    /* Warna Utama Khas Politeknik Nest (Magenta, Coral Orange, & Dark Navy) */
-    --nest-primary: #1A2238;         /* Dark Slate/Navy (Untuk Header Topbar & Footer) */
+    --nest-primary: #1A2238;         /* Dark Navy */
     --nest-on-primary: #ffffff;
-    --nest-background: #F8FAFC;      /* Soft Light Grey background */
-    --nest-surface: #E01A4F;         /* Vibrant Pink/Magenta */
-    --nest-accent: #FF6B35;          /* Bright Coral Orange */
+    --nest-background: #F8FAFC;      
+    --nest-surface: #E01A4F;         /* Vibrant Magenta */
+    --nest-accent: #FF6B35;          /* Coral Orange */
     --nest-accent-yellow: #FFC107;   /* Kuning Aksen */
-    --nest-text: #1E293B;            /* Charcoal Dark Text */
-    --nest-text-muted: #64748B;      /* Slate Grey Muted */
+    --nest-text: #1E293B;            
+    --nest-text-muted: #64748B;      
 
-    /* Gradasi Khas Landing Page Nest */
     --nest-gradient-hero: linear-gradient(135deg, #E01A4F 0%, #FF6B35 100%);
     --nest-gradient-ticker: linear-gradient(90deg, #FF5252 0%, #FF7A00 100%);
 
-    /* Tipografi */
     --nest-font-display: "Plus Jakarta Sans", "Montserrat", sans-serif;
     --nest-font-body: "Plus Jakarta Sans", sans-serif;
     --nest-size-display: 42px;
     --nest-size-heading: 32px;
     --nest-size-body: 16px;
 
-    /* Radius Modul */
     --nest-radius-sm: 8px;
     --nest-radius-md: 14px;
     --nest-radius-lg: 24px;
 
-    /* Shadow */
     --nest-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
     --nest-shadow-elevated: 0 12px 30px rgba(224, 26, 79, 0.18);
 
-    /* Motion */
     --nest-motion-fast: 150ms;
     --nest-motion-base: 300ms;
     --nest-easing: cubic-bezier(0.16, 1, 0.3, 1);
 
-    /* ---------- Override Bootstrap 5.3 ---------- */
     --bs-primary: #E01A4F;
     --bs-primary-rgb: 224, 26, 79;
     --bs-secondary: #FF6B35;
@@ -77,7 +69,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     color: var(--nest-primary);
 }
 
-/* ---------- 3. Topbar Brand (Kontak Atas) ---------- */
+/* ---------- 3. Topbar Brand ---------- */
 .topbar-nest {
     background-color: var(--nest-primary);
     color: #ffffff;
@@ -115,7 +107,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     color: #ffffff;
 }
 
-/* ---------- 5. Ticker Info / Running Text ---------- */
+/* ---------- 5. Ticker Info ---------- */
 .ticker-nest {
     background: var(--nest-gradient-ticker);
     color: #ffffff;
@@ -175,7 +167,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* ---------- 7. Card & Quick Access (Akses Cepat) ---------- */
+/* ---------- 7. Card & Quick Access ---------- */
 .card {
     border: 1px solid #E2E8F0;
     background: #ffffff;
@@ -187,13 +179,6 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     transform: translateY(-5px);
     border-color: rgba(224, 26, 79, 0.3);
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* Card Khusus Jam Layanan / Loket Gelap */
-.card-dark-nest {
-    background-color: var(--nest-primary) !important;
-    color: #ffffff !important;
-    border: none;
 }
 
 /* ---------- 8. Section Title ---------- */
@@ -214,7 +199,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     background: var(--nest-surface);
 }
 
-/* ---------- 9. Tombol (Buttons) ---------- */
+/* ---------- 9. Tombol ---------- */
 .btn {
     border-radius: 30px;
     font-weight: 700;
@@ -257,43 +242,68 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     color: #ffffff;
 }
 
-/* ---------- 11. Focus & Accessibility ---------- */
+/* ---------- 11. Focus ---------- */
 :focus-visible {
     outline: 3px solid var(--nest-accent);
     outline-offset: 2px;
 }
 
-/* ============================================================
-   12. FIX UNIVERSAL: MEMUNCULKAN TEKS JUDUL & IKON JAM LAYANAN
-   ============================================================ */
-
-/* Memaksa elemen di dalam box gelap paling bawah/card-dark-nest */
 .card-dark-nest,
-[class*="bg-dark"],
-div[class*="col"] > div:last-child {
+main .card.bg-dark {
     background-color: #1A2238 !important;
-    color: #ffffff !important;
+    border: none !important;
+    border-radius: 16px !important;
 }
 
-/* Memaksa SEMUA teks (span, div, p, h1-h6, strong, title) muncul putih */
 .card-dark-nest *,
-[class*="bg-dark"] *,
-div[class*="col"] > div:last-child * {
+main .card.bg-dark * {
     color: #ffffff !important;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* Memaksa Ikon (SVG / Tag <i>) berwarna Kuning/Orange terang */
 .card-dark-nest i,
 .card-dark-nest svg,
-[class*="bg-dark"] i,
-[class*="bg-dark"] svg,
-div[class*="col"] > div:last-child i,
-div[class*="col"] > div:last-child svg {
+main .card.bg-dark i,
+main .card.bg-dark svg {
     color: #FFC107 !important;
     fill: #FFC107 !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: inline-block !important;
+}
+
+/* ============================================================
+   13. KHUSUS NAVBAR DROPDOWN MENU (TETAP TERLIHAT JELAS)
+   ============================================================ */
+
+/* Box Dropdown Putih Bersih */
+.navbar .dropdown-menu {
+    background-color: #ffffff !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 12px !important;
+    padding: 8px !important;
+}
+
+/* Memaksa Teks Menu Dropdown Gelap */
+.navbar .dropdown-menu a,
+.navbar .dropdown-menu .dropdown-item {
+    color: #1E293B !important;
+    font-weight: 600 !important;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Efek Hover Dropdown */
+.navbar .dropdown-menu a:hover,
+.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #FFF1F2 !important;
+    color: #E01A4F !important;
+}
+
+/* Ikon Oranye Dropdown */
+.navbar .dropdown-menu i,
+.navbar .dropdown-menu svg {
+    color: #FF6B35 !important;
+    margin-right: 8px !important;
 }

@@ -57,7 +57,7 @@
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="text-center text-muted py-5 border rounded-3">
+                    <div class="text-center card-dark-nest py-5 border rounded-3">
                         <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
                         <p class="mb-0">Belum ada pengumuman terbaru yang dipublikasikan.</p>
                     </div>
@@ -102,7 +102,7 @@
                     </a>
                 </div>
 
-                <div class="card mt-4 border-0" style="background-color: var(--nest-primary); color: #fff;">
+                <div class="card mt-4 border-0 card-dark-nest">
                     <div class="card-body">
                         <h6 class="fw-bold mb-2"><i class="bi bi-clock-fill me-1"></i> Jam Layanan Loket</h6>
                         <p class="small mb-1 opacity-75">Senin – Jumat</p>
