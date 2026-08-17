@@ -21,7 +21,10 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark navbar-nest">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="<?= BASE_URL ?>">BAAK Politeknik Nest</a>
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="<?= BASE_URL ?>">
+            <img src="<?= BASE_URL ?>assets/img/logo-polinest.png" alt="Logo Politeknik Nest" width="40" height="40">
+                <span>BAAK Politeknik Nest</span>
+                    </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -71,16 +74,16 @@
                 <div class="col-md-4">
                     <h6 class="fw-bold mb-3">Navigasi</h6>
                     <ul class="list-unstyled mb-0">
-                        <li class="mb-1"><a href="<?= BASE_URL ?>" class="text-white-50 text-decoration-none">Beranda</a></li>
-                        <li class="mb-1"><a href="<?= BASE_URL ?>berita" class="text-white-50 text-decoration-none">Berita & Pengumuman</a></li>
-                        <li class="mb-1"><a href="<?= BASE_URL ?>layanan" class="text-white-50 text-decoration-none">Layanan BAAK</a></li>
-                        <li class="mb-1"><a href="<?= BASE_URL ?>jadwal" class="text-white-50 text-decoration-none">Jadwal & Pedoman</a></li>
-                        <li class="mb-1"><a href="<?= BASE_URL ?>pencarian-dosen" class="text-white-50 text-decoration-none">Cari Dosen Pembimbing</a></li>
+                        <li class="mb-1"><a href="<?= BASE_URL ?>" class="text-decoration-none">Beranda</a></li>
+                        <li class="mb-1"><a href="<?= BASE_URL ?>berita" class="text-decoration-none">Berita & Pengumuman</a></li>
+                        <li class="mb-1"><a href="<?= BASE_URL ?>layanan" class="text-decoration-none">Layanan BAAK</a></li>
+                        <li class="mb-1"><a href="<?= BASE_URL ?>jadwal" class="text-decoration-none">Jadwal & Pedoman</a></li>
+                        <li class="mb-1"><a href="<?= BASE_URL ?>pencarian-dosen" class="text-decoration-none">Cari Dosen Pembimbing</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
                     <h6 class="fw-bold mb-3">Kontak BAAK</h6>
-                    <ul class="list-unstyled mb-0 text-white-50">
+                    <ul class="list-unstyled mb-0">
                         <li class="mb-1"><i class="bi bi-envelope-fill me-2"></i>baak@politekniknest.ac.id</li>
                         <li class="mb-1"><i class="bi bi-geo-alt-fill me-2"></i>Gedung Rektorat Lantai 1</li>
                         <li class="mb-1"><i class="bi bi-clock-fill me-2"></i>Senin - Jumat, 08.00 - 15.00 WIB</li>
@@ -88,13 +91,13 @@
                 </div>
                 <div class="col-md-4 text-md-end">
                     <h6 class="fw-bold mb-3">Politeknik Nest</h6>
-                    <p class="text-white-50 small mb-0">Biro Administrasi & Akademik Kampus</p>
-                    <p class="text-white-50 small">Sukoharjo, Jawa Tengah</p>
+                    <p class="small mb-0">Biro Administrasi & Akademik Kampus</p>
+                    <p class="small">Sukoharjo, Jawa Tengah</p>
                 </div>
             </div>
             <hr class="border-secondary mt-4 mb-3">
             <div class="text-center">
-                <small class="text-white-50">&copy; <?= date('Y') ?> BAAK Politeknik Nest. Hak Cipta Dilindungi.</small>
+                <small>&copy; <?= date('Y') ?> BAAK Politeknik Nest. Hak Cipta Dilindungi.</small>
             </div>
         </div>
     </footer>
