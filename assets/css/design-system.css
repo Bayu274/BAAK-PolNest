@@ -324,3 +324,22 @@ main .card.bg-dark svg {
 .text-secondary {
     color: var(--nest-text-muted) !important;
 }
+/* ============================================================
+   15. VARIASI WARNA THUMBNAIL FALLBACK BERITA
+   ============================================================ */
+
+/* Selingi warna background fallback (saat berita belum punya foto)
+   supaya tidak monoton oranye semua. Berlaku hanya di grid berita
+   beranda (.news-grid), tidak menyentuh card lain di halaman. */
+.news-grid > div:nth-child(4n+1) .card-img-top.bg-secondary {
+    background-color: var(--nest-surface) !important; /* magenta */
+}
+.news-grid > div:nth-child(4n+2) .card-img-top.bg-secondary {
+    background-color: var(--nest-accent) !important; /* oranye (default) */
+}
+.news-grid > div:nth-child(4n+3) .card-img-top.bg-secondary {
+    background-color: var(--nest-primary) !important; /* navy */
+}
+.news-grid > div:nth-child(4n+4) .card-img-top.bg-secondary {
+    background: var(--nest-gradient-hero) !important; /* gradient magenta-oranye */
+}
