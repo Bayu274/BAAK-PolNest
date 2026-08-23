@@ -39,6 +39,22 @@
         .sidebar-nest .nav-link.active i {
             color: #f96d80 !important;
         }
+
+        /* Style untuk tulisan BAAK Admin */
+        .admin-brand-text {
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* Style untuk tombol Logout yang elegan */
+        .logout-btn {
+            color: rgba(255, 255, 255, 0.85) !important;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -57,7 +73,13 @@
     <div class="d-flex">
         <!-- Sidebar desktop (>= lg) -->
         <nav class="bg-gradient-nest text-white p-3 d-none d-lg-block flex-shrink-0 sidebar-nest">
-            <h5 class="mb-4 fw-bold">BAAK Admin</h5>
+            <!-- Header Sidebar (Logo & Nama) -->
+            <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-light border-opacity-25">
+                <!-- PENTING: Sesuaikan path src gambar di bawah ini dengan lokasi asli logo BAAK di folder proyekmu -->
+                <img src="<?= BASE_URL ?>assets/img/logo-polinest.png" alt="Logo" width="40" class="me-2 bg-white rounded-circle p-1 shadow-sm">
+                <h5 class="mb-0 fw-bold admin-brand-text">BAAK Admin</h5>
+            </div>
+            
             <ul class="nav flex-column">
                 <?php foreach ($sidebarItems as $item): 
                     $itemPath = parse_url($item['href'], PHP_URL_PATH);
@@ -71,10 +93,12 @@
                         </a>
                     </li>
                 <?php endforeach; ?>
-                <li class="nav-item mt-4">
+                
+                <!-- Tombol Logout -->
+                <li class="nav-item mt-4 pt-3 border-top border-light border-opacity-25">
                     <form action="<?= BASE_URL ?>logout" method="POST" class="d-inline">
                         <input type="hidden" name="csrf_token" value="<?= e(generateCsrfToken()) ?>">
-                        <button type="submit" class="nav-link text-warning btn btn-link p-0 fw-bold w-100 text-start ps-3">
+                        <button type="submit" class="nav-link logout-btn btn btn-link p-0 fw-bold w-100 text-start ps-3">
                             <i class="bi bi-box-arrow-right me-2"></i>Logout
                         </button>
                     </form>
@@ -85,7 +109,11 @@
         <!-- Offcanvas sidebar mobile (< lg) -->
         <div class="offcanvas offcanvas-start bg-gradient-nest text-white" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
             <div class="offcanvas-header border-bottom border-light border-opacity-25">
-                <h5 class="offcanvas-title text-white fw-bold" id="sidebarOffcanvasLabel">BAAK Admin</h5>
+                <div class="d-flex align-items-center">
+                    <!-- PENTING: Sesuaikan path src gambar di bawah ini dengan lokasi asli logo BAAK di folder proyekmu -->
+                    <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Logo" width="35" class="me-2 bg-white rounded-circle p-1 shadow-sm">
+                    <h5 class="offcanvas-title text-white fw-bold mb-0 admin-brand-text" id="sidebarOffcanvasLabel">BAAK Admin</h5>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
             </div>
             <div class="offcanvas-body pt-3">
@@ -101,10 +129,12 @@
                             </a>
                         </li>
                     <?php endforeach; ?>
-                    <li class="nav-item mt-4">
+                    
+                    <!-- Tombol Logout -->
+                    <li class="nav-item mt-4 pt-3 border-top border-light border-opacity-25">
                         <form action="<?= BASE_URL ?>logout" method="POST" class="d-inline">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCsrfToken()) ?>">
-                            <button type="submit" class="nav-link text-warning btn btn-link p-0 fw-bold w-100 text-start ps-3">
+                            <button type="submit" class="nav-link logout-btn btn btn-link p-0 fw-bold w-100 text-start ps-3">
                                 <i class="bi bi-box-arrow-right me-2"></i>Logout
                             </button>
                         </form>
@@ -116,7 +146,7 @@
         <main class="flex-grow-1 min-vh-100 bg-light">
             <!-- Topbar mobile: tombol buka menu -->
             <nav class="navbar navbar-dark bg-gradient-nest d-lg-none px-3 shadow-sm">
-                <span class="fw-bold text-white">BAAK Admin</span>
+                <span class="fw-bold text-white admin-brand-text">BAAK Admin</span>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Buka menu navigasi">
                     <span class="navbar-toggler-icon"></span>
                 </button>
