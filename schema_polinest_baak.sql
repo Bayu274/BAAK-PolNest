@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 13, 2026 at 04:59 AM
+-- Generation Time: Sep 02, 2026 at 11:45 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -41,8 +41,8 @@ CREATE TABLE `admin_users` (
 -- Dumping data for table `admin_users`
 --
 
-INSERT INTO `admin_users` (`id`, `username`, `password`, `created_at`) VALUES
-(1, 'admin', '$2y$10$tqQsy3IR0XwBQR2qoqNiAu4uCR5s/0uzOZo/p.8hlfJc44ttMkkSm', '2026-07-10 07:39:41');
+INSERT INTO `admin_users` (`id`, `username`, `email`, `password`, `is_active`, `last_login_at`, `created_at`) VALUES
+(1, 'admin', NULL, '$2y$10$VfWo8s.qIQ6wXp9ngY6Sk.QkTNpoEIwJcfuLh0oA3fIcRILAO70LS', 1, '2026-09-02 09:44:45', '2026-07-10 07:39:41');
 
 -- --------------------------------------------------------
 
@@ -60,6 +60,17 @@ CREATE TABLE `downloadable_files` (
   `uploaded_by` int(11) DEFAULT NULL,
   `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `downloadable_files`
+--
+
+INSERT INTO `downloadable_files` (`id`, `file_category`, `file_name`, `title`, `file_path`, `is_active`, `uploaded_by`, `uploaded_at`) VALUES
+(1, 'jadwal_kuliah', 'JADWAL KULIAH.pdf', NULL, 'doc_595c8f8c9bfd478a.pdf', 1, 1, '2026-08-07 08:02:21'),
+(2, 'kalender_akademik', 'KALENDER AKADEMIK.pdf', NULL, 'doc_97b6983a659fbe52.pdf', 1, 1, '2026-08-07 08:02:40'),
+(3, 'formulir_krs', 'FORMULIR KRS.pdf', NULL, 'doc_7429e0e069ff2330.pdf', 1, 1, '2026-08-07 08:02:49'),
+(4, 'sop_dokumen', 'SOP DOKUMEN.pdf', NULL, 'doc_a8c0b6910e0b7286.pdf', 1, 1, '2026-08-07 08:02:59'),
+(7, 'panduan_ta', 'PANDUAN TA.pdf', 'PANDUAN TA', 'doc_1aba42cc2221975c.pdf', 1, 1, '2026-08-21 06:48:41');
 
 -- --------------------------------------------------------
 
@@ -79,6 +90,18 @@ CREATE TABLE `news` (
   `is_active` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `news`
+--
+
+INSERT INTO `news` (`id`, `title`, `slug`, `content`, `thumbnail_image`, `created_by`, `created_at`, `updated_at`, `is_active`) VALUES
+(6, 'Pendaftaran Wisuda', 'pendaftaran-wisuda', '<p>Daftar wisuda disini</p>', '/storage/uploads/thumb_a04ce802d58ca784.png', 1, '2026-07-13 03:47:59', '2026-08-03 09:15:33', 1),
+(7, 'Pendaftaran Magang Industri', 'pendaftaran-magang-industri', '<p>Daftar Magang disini</p>', '/storage/uploads/thumb_e03f3615a3b26106.jpg', 1, '2026-07-13 04:53:35', '2026-08-03 09:15:26', 1),
+(8, 'Pendaftaran Kuliah Kerja Nyata', 'pendaftaran-kuliah-kerja-nyata', '<p>Daftar KKN disini</p>', '/storage/uploads/thumb_424e9db489df6237.png', 1, '2026-07-13 05:14:43', '2026-08-03 09:15:18', 1),
+(9, 'Pendaftaran Magang Mandiri', 'pendaftaran-magang-mandiri-2', '<p>Daftar Magang Mandiri Disini</p>', '/storage/uploads/thumb_7db2dd38adce32ff.jpg', 1, '2026-07-17 08:26:01', '2026-08-03 09:15:09', 1),
+(10, 'Tes', 'tes', '<p>Tes</p>', NULL, 1, '2026-08-07 09:13:50', '2026-08-07 09:13:50', 1),
+(11, 'Pendaftaran Seminar Proposal', 'pendaftaran-seminar-proposal', '<h4>DAFTAR SEMINAR DISINI<br />link</h4><p>link<a href=\"https://github.com/Bayu274/BAAK-PolNest/tree/development\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/Bayu274/BAAK-PolNest/tree/development</a></p>', '/storage/uploads/thumb_c2bd8d0d8a69f0a5.jpg', 1, '2026-08-21 06:46:45', '2026-08-21 06:46:45', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -88,7 +111,7 @@ CREATE TABLE `news` (
 CREATE TABLE `pages_content` (
   `id` int(11) NOT NULL,
   `page_identifier` varchar(100) NOT NULL,
-  `title` varchar(255) NOT NULL DEFAULT '',
+  `title` varchar(255) DEFAULT NULL,
   `html_content` longtext DEFAULT NULL,
   `updated_by` int(11) DEFAULT NULL,
   `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -99,7 +122,9 @@ CREATE TABLE `pages_content` (
 --
 
 INSERT INTO `pages_content` (`id`, `page_identifier`, `title`, `html_content`, `updated_by`, `last_updated`) VALUES
-(1, 'sop-cuti', 'SOP Cuti Akademik', '<h2>Apa itu Cuti Akademik?</h2><p>Cuti Akademik adalah penangguhan sementara kegiatan perkuliahan oleh mahasiswa untuk jangka waktu tertentu dengan tetap mempertahankan status kemahasiswaannya, sesuai ketentuan yang berlaku di Politeknik Nest.</p><h2>Persyaratan Umum</h2><ul><li>Terdaftar sebagai mahasiswa aktif pada semester berjalan.</li><li>Tidak sedang menjalani sanksi akademik atau administrasi.</li><li>Mengajukan permohonan paling lambat sesuai jadwal yang ditetapkan BAAK.</li><li>Melunasi kewajiban administrasi yang berlaku.</li></ul><h2>Prosedur Pengajuan</h2><ol><li>Mahasiswa mengunduh Formulir Cuti pada halaman <a href=\"/jadwal\">Jadwal &amp; Pedoman</a>.</li><li>Mengisi formulir secara lengkap dan menandatanganinya.</li><li>Melampirkan berkas pendukung sesuai daftar di bawah.</li><li>Menyerahkan berkas ke loket pelayanan BAAK pada jam kerja.</li><li>Menunggu verifikasi dan pengesahan dari bagian akademik.</li></ol><h2>Berkas yang Dibutuhkan</h2><ul><li>Formulir Cuti yang sudah diisi.</li><li>Fotokopi Kartu Rencana Studi (KRS) semester terakhir.</li><li>Surat keterangan atau dokumen pendukung alasan cuti.</li></ul><h2>Informasi Lebih Lanjut</h2><p>Untuk pertanyaan lebih lanjut silakan hubungi loket pelayanan BAAK pada jam kerja (Senin&ndash;Jumat, 08.00&ndash;15.00 WIB) atau melalui email <a href=\"mailto:baak@politekniknest.ac.id\">baak@politekniknest.ac.id</a>.</p>', NULL, '2026-07-10 05:57:37');
+(1, 'sop-cuti', NULL, '<p>tes fitur sop cuti</p>', 1, '2026-07-22 04:57:45'),
+(2, 'visi-misi', 'Visi Misi', '<p>Visi Misi</p>', 1, '2026-07-22 04:57:55'),
+(4, 'visi-misi-ti', 'Visi misi prodi TI', '<h2>TES 1,2,3,</h2>', 1, '2026-08-21 06:50:44');
 
 -- --------------------------------------------------------
 
@@ -108,15 +133,20 @@ INSERT INTO `pages_content` (`id`, `page_identifier`, `title`, `html_content`, `
 --
 
 CREATE TABLE `rate_limit_attempts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `ip_address` varchar(45) NOT NULL,
-  `endpoint` varchar(255) NOT NULL,
-  `window_start` timestamp NOT NULL DEFAULT current_timestamp(),
+  `endpoint` varchar(100) NOT NULL,
   `attempt_count` int(11) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_ip_endpoint_window` (`ip_address`,`endpoint`,`window_start`),
-  KEY `idx_window_start` (`window_start`)
+  `window_start` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `rate_limit_attempts`
+--
+
+INSERT INTO `rate_limit_attempts` (`id`, `ip_address`, `endpoint`, `attempt_count`, `window_start`) VALUES
+(51, '::1', 'login', 1, '2026-09-02 09:44:45'),
+(52, '::1', 'login:admin', 1, '2026-09-02 09:44:45');
 
 -- --------------------------------------------------------
 
@@ -132,6 +162,32 @@ CREATE TABLE `student_advisors` (
   `advisor_type` enum('Wali','Magang','TA') NOT NULL,
   `imported_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `student_advisors`
+--
+
+INSERT INTO `student_advisors` (`id`, `nim`, `student_name`, `advisor_name`, `advisor_type`, `imported_at`) VALUES
+(1, '21010001', 'andi wijaya', 'Bpk. Bambang Permana M.Pd', 'Wali', '2026-08-03 08:02:41'),
+(2, '21010001', 'andi wijaya', 'Ibu Sari Wulandari M.Kom', 'Magang', '2026-08-03 08:02:41'),
+(3, '21010001', 'andi wijaya', 'Bpk. Joko Susilo M.T', 'TA', '2026-08-03 08:02:41'),
+(4, '21010002', 'siti rahmawati', 'Ibu Dewi Lestari M.Pd', 'Wali', '2026-08-03 08:02:41'),
+(5, '21010002', 'siti rahmawati', 'Bpk. Agus Prasetyo M.Kom', 'Magang', '2026-08-03 08:02:41'),
+(6, '21010003', 'bagus prasetyo', 'Bpk. Eko Nugroho M.T', 'Wali', '2026-08-03 08:02:41'),
+(7, '21010003', 'bagus prasetyo', 'Ibu Ratna Sari S.Kom', 'Magang', '2026-08-03 08:02:41'),
+(8, '21010003', 'bagus prasetyo', 'Bpk. Dedi Kurniawan M.Pd', 'TA', '2026-08-03 08:02:41'),
+(9, '21010004', 'dewi anggraini', 'Ibu Fitri Handayani M.Pd', 'Wali', '2026-08-03 08:02:41'),
+(10, '21010005', 'budi hartanto', 'Bpk. Rudi Setiawan M.T', 'Wali', '2026-08-03 08:02:41'),
+(11, '21010006', 'maya puspita', 'Ibu Sri Rahayu M.Kom', 'Wali', '2026-08-03 08:02:41'),
+(12, '21010006', 'maya puspita', 'Bpk. Hendra Gunawan S.T', 'Magang', '2026-08-03 08:02:41'),
+(13, '21010007', 'rizky ramadhan', 'Bpk. Ahmad Fauzi M.T', 'Wali', '2026-08-03 08:02:41'),
+(14, '21010008', 'nur aini', 'Ibu Lina Marlina M.Pd', 'Wali', '2026-08-03 08:02:41'),
+(15, '21010009', 'fajar nugraha', 'Bpk. Wisnu Wardana S.Kom', 'Wali', '2026-08-03 08:02:41'),
+(16, '21010010', 'linda kusuma', 'Ibu Rina Wahyuni M.Pd', 'Wali', '2026-08-03 08:02:41'),
+(17, '21010010', 'linda kusuma', 'Bpk. Bayu Pratama M.Kom', 'Magang', '2026-08-03 08:02:41'),
+(18, '21010010', 'linda kusuma', 'Ibu Nadia Rahma S.T', 'TA', '2026-08-03 08:02:41'),
+(19, '21010011', 'muhammad iqbal', 'Bpk. Yusuf Hakim M.Kom', 'Wali', '2026-08-03 08:02:41'),
+(20, '21010012', 'dian kartika', 'Ibu Putri Ayu Lestari S.Kom', 'Wali', '2026-08-03 08:02:41');
 
 --
 -- Indexes for dumped tables
@@ -158,8 +214,7 @@ ALTER TABLE `downloadable_files`
 ALTER TABLE `news`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `slug` (`slug`),
-  ADD KEY `idx_created_at` (`created_at`),
-  ADD KEY `idx_news_created_by` (`created_by`);
+  ADD KEY `idx_created_at` (`created_at`);
 
 --
 -- Indexes for table `pages_content`
@@ -174,15 +229,13 @@ ALTER TABLE `pages_content`
 --
 ALTER TABLE `rate_limit_attempts`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uk_ip_endpoint_window` (`ip_address`,`endpoint`,`window_start`),
-  ADD KEY `idx_window_start` (`window_start`);
+  ADD KEY `idx_ip_endpoint` (`ip_address`,`endpoint`);
 
 --
 -- Indexes for table `student_advisors`
 --
 ALTER TABLE `student_advisors`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uk_nim_type` (`nim`,`advisor_type`),
   ADD KEY `idx_nim_student_name` (`nim`,`student_name`);
 
 --
@@ -199,31 +252,31 @@ ALTER TABLE `admin_users`
 -- AUTO_INCREMENT for table `downloadable_files`
 --
 ALTER TABLE `downloadable_files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `news`
 --
 ALTER TABLE `news`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `pages_content`
 --
 ALTER TABLE `pages_content`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `rate_limit_attempts`
 --
 ALTER TABLE `rate_limit_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `student_advisors`
 --
 ALTER TABLE `student_advisors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Constraints for dumped tables
